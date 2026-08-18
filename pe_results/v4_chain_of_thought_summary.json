@@ -1,0 +1,19 @@
+{
+  "prompt_name": "v4_chain_of_thought",
+  "total_images": 20,
+  "avg_scores": {
+    "json_valid": 1.0,
+    "fields_present": 1.0,
+    "dish_name_bilingual": 0.0,
+    "ingredient_count": 5.15,
+    "ingredient_sufficient": 0.975,
+    "cooking_method_english": 0.35,
+    "tags_valid": 1.0,
+    "vd_length": 653.0,
+    "vd_sufficient": 1.0
+  },
+  "json_valid_rate": 1.0,
+  "avg_fields_present": 1.0,
+  "avg_ingredient_count": 5.15,
+  "avg_vd_length": 653.0
+}

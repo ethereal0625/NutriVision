@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+
+# Output and cache
+output/
+*.log
+*.cache
+.DS_Store
+
+# Data files (too large for GitHub)
+Train/
+Val/
+food_filtered/
+food_extra/
+food_merged/
+*.jsonl
+
+# Temporary files
+*.tmp
+*.bak

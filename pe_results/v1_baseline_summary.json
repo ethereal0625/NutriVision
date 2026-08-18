@@ -1,0 +1,19 @@
+{
+  "prompt_name": "v1_baseline",
+  "total_images": 20,
+  "avg_scores": {
+    "json_valid": 1.0,
+    "fields_present": 1.0,
+    "dish_name_bilingual": 0.05,
+    "ingredient_count": 4.7,
+    "ingredient_sufficient": 0.875,
+    "cooking_method_english": 0.0,
+    "tags_valid": 0.75,
+    "vd_length": 191.6,
+    "vd_sufficient": 0.725
+  },
+  "json_valid_rate": 1.0,
+  "avg_fields_present": 1.0,
+  "avg_ingredient_count": 4.7,
+  "avg_vd_length": 191.6
+}
