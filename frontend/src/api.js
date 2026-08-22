@@ -76,6 +76,7 @@ export const api = {
   getProfile: () => request('/profile'),
   updateProfile: (profile) => request('/profile', { method: 'PUT', body: profile }),
   getTips: () => request('/tips'),
+  getBadges: () => request('/badges'),
   getReport: (days) => requestText(`/report?days=${days || 7}`),
   getCompensate: (date) => request(`/compensate?date_str=${date || ''}`),
 }

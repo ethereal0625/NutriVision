@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, getToken } from '../api.js'
-import { Bar, CartesianGrid, Cell, ComposedChart, Legend, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, Bar, CartesianGrid, Cell, ComposedChart, Legend, Line, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 const MEAL_EMOJI = { 早餐: '🌅', 午餐: '☀️', 晚餐: '🌙', 加餐: '🍎', 饮品: '🥤' }
 const MEAL_TYPES = ['早餐', '午餐', '晚餐', '加餐', '饮品']
@@ -336,6 +336,36 @@ export default function Plan() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 近 7 天热量趋势 */}
+      <div className="mb-6 rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+        <h2 className="text-lg font-bold text-ink-800 mb-4">📈 近 7 天热量趋势</h2>
+        {chartData.length > 0 ? (
+          <div className="h-[260px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="trendCalorieFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2e8b57" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#2e8b57" stopOpacity={0.04} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e9f0ec" vertical={false} />
+                <XAxis dataKey="date" tickFormatter={(v) => v.slice(5)} tick={{ fontSize: 11, fill: '#64776c' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#64776c' }} />
+                <Tooltip formatter={(v) => [`${v} kcal`, '摄入']} labelFormatter={(l) => `日期 ${l}`} />
+                <ReferenceLine y={Number(stats?.target) || 0} stroke="#2e8b57" strokeDasharray="6 4" label={{ value: '目标', position: 'insideTopRight', fontSize: 11, fill: '#2e8b57' }} />
+                <Area type="monotone" dataKey="total" name="摄入" stroke="#2e8b57" strokeWidth={2.5} fill="url(#trendCalorieFill)" dot={{ r: 3.5, fill: '#2e8b57', strokeWidth: 0 }} activeDot={{ r: 5 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="py-10 text-center">
+            <div className="text-4xl mb-3">📭</div>
+            <p className="text-ink-500">暂无近 7 天记录，先去记录几餐吧</p>
+          </div>
+        )}
       </div>
 
       {/* 当日餐次 */}

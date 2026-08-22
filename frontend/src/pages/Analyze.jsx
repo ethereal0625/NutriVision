@@ -1,6 +1,7 @@
 ﻿import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, getToken } from '../api.js'
+import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from 'recharts'
 
 const MODELS = [
   { id: 'qwen-vl-plus', label: '通义千问 Qwen-VL-Plus' },
@@ -415,101 +416,31 @@ export default function Analyze() {
                 </div>
               </div>
 
-              {/* 三项评分条 */}
-              <div className="space-y-3">
-                {[
-                  { label: '热量控制', score: result.nutrition_score.details.calorie_score, color: 'bg-brand-500' },
-                  { label: '营养均衡', score: result.nutrition_score.details.macro_score, color: 'bg-blue-500' },
-                  { label: '烹饪方式', score: result.nutrition_score.details.cooking_score, color: 'bg-amber-500' },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-xs text-ink-500 mb-1">
-                      <span>{item.label}</span>
-                      <span className="font-bold">{item.score}分</span>
-                    </div>
-                    <div className="h-2 bg-ink-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
-                    </div>
+              {/* 宏量营养素雷达图 */}
+              {result.macros && (
+                <div className="mb-4">
+                  <div className="text-xs text-ink-500 mb-1">🍎 宏量营养素均衡度</div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <RadarChart
+                      data={[
+                        { name: '蛋白质', actual: result.macros.protein_pct || 0, target: 27 },
+                        { name: '碳水', actual: result.macros.carbs_pct || 0, target: 55 },
+                        { name: '脂肪', actual: result.macros.fat_pct || 0, target: 27 },
+                      ]}
+                      outerRadius="70%"
+                    >
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                      <Radar name="实际" dataKey="actual" stroke="#2e8b57" fill="#2e8b57" fillOpacity={0.35} />
+                      <Radar name="目标" dataKey="target" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.12} strokeDasharray="4 4" />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                  <div className="flex justify-center gap-4 text-xs text-ink-500">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-brand-600 inline-block" />实际</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />理想</span>
                   </div>
-                ))}
-              </div>
-
-              {/* 改善建议 */}
-              {result.nutrition_score.advice && result.nutrition_score.advice.length > 0 && (
-                <div className="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
-                  <div className="text-xs font-semibold text-amber-700 mb-1">💡 改善建议</div>
-                  <ul className="space-y-1">
-                    {result.nutrition_score.advice.map((a, i) => (
-                      <li key={i} className="text-sm text-amber-800">· {a}</li>
-                    ))}
-                  </ul>
                 </div>
               )}
-            </div>
-          )}
-
-
-          {/* 营养评分卡片 */}
-          {result.nutrition_score && (
-            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-ink-800">📊 营养评分</h3>
-                <div className={`px-4 py-1.5 rounded-full text-sm font-black text-white ${
-                  result.nutrition_score.color === 'green' ? 'bg-green-500' :
-                  result.nutrition_score.color === 'blue' ? 'bg-blue-500' :
-                  result.nutrition_score.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
-                }`}>
-                  {result.nutrition_score.grade} · {result.nutrition_score.label} ({result.nutrition_score.score}分)
-                </div>
-              </div>
-
-              {/* 三项评分条 */}
-              <div className="space-y-3">
-                {[
-                  { label: '热量控制', score: result.nutrition_score.details.calorie_score, color: 'bg-brand-500' },
-                  { label: '营养均衡', score: result.nutrition_score.details.macro_score, color: 'bg-blue-500' },
-                  { label: '烹饪方式', score: result.nutrition_score.details.cooking_score, color: 'bg-amber-500' },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-xs text-ink-500 mb-1">
-                      <span>{item.label}</span>
-                      <span className="font-bold">{item.score}分</span>
-                    </div>
-                    <div className="h-2 bg-ink-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 改善建议 */}
-              {result.nutrition_score.advice && result.nutrition_score.advice.length > 0 && (
-                <div className="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
-                  <div className="text-xs font-semibold text-amber-700 mb-1">💡 改善建议</div>
-                  <ul className="space-y-1">
-                    {result.nutrition_score.advice.map((a, i) => (
-                      <li key={i} className="text-sm text-amber-800">· {a}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-
-          {/* 营养评分卡片 */}
-          {result.nutrition_score && (
-            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-ink-800">📊 营养评分</h3>
-                <div className={`px-4 py-1.5 rounded-full text-sm font-black text-white ${
-                  result.nutrition_score.color === 'green' ? 'bg-green-500' :
-                  result.nutrition_score.color === 'blue' ? 'bg-blue-500' :
-                  result.nutrition_score.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
-                }`}>
-                  {result.nutrition_score.grade} · {result.nutrition_score.label} ({result.nutrition_score.score}分)
-                </div>
-              </div>
 
               {/* 三项评分条 */}
               <div className="space-y-3">
@@ -544,53 +475,6 @@ export default function Analyze() {
             </div>
           )}
 
-
-          {/* 营养评分卡片 */}
-          {result.nutrition_score && (
-            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-ink-800">📊 营养评分</h3>
-                <div className={`px-4 py-1.5 rounded-full text-sm font-black text-white ${
-                  result.nutrition_score.color === 'green' ? 'bg-green-500' :
-                  result.nutrition_score.color === 'blue' ? 'bg-blue-500' :
-                  result.nutrition_score.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
-                }`}>
-                  {result.nutrition_score.grade} · {result.nutrition_score.label} ({result.nutrition_score.score}分)
-                </div>
-              </div>
-
-              {/* 三项评分条 */}
-              <div className="space-y-3">
-                {[
-                  { label: '热量控制', score: result.nutrition_score.details.calorie_score, color: 'bg-brand-500' },
-                  { label: '营养均衡', score: result.nutrition_score.details.macro_score, color: 'bg-blue-500' },
-                  { label: '烹饪方式', score: result.nutrition_score.details.cooking_score, color: 'bg-amber-500' },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-xs text-ink-500 mb-1">
-                      <span>{item.label}</span>
-                      <span className="font-bold">{item.score}分</span>
-                    </div>
-                    <div className="h-2 bg-ink-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 改善建议 */}
-              {result.nutrition_score.advice && result.nutrition_score.advice.length > 0 && (
-                <div className="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
-                  <div className="text-xs font-semibold text-amber-700 mb-1">💡 改善建议</div>
-                  <ul className="space-y-1">
-                    {result.nutrition_score.advice.map((a, i) => (
-                      <li key={i} className="text-sm text-amber-800">· {a}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* 改造前后对比卡片 */}
           {plan && plan.before_after && (

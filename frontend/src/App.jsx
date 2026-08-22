@@ -11,6 +11,7 @@ import About from './pages/About.jsx'
 import Tips from './pages/Tips.jsx'
 import Profile from './pages/Profile.jsx'
 import Water from './pages/Water.jsx'
+import Badges from './pages/Badges.jsx'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/tips" element={<Tips />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/water" element={<Water />} />
+          <Route path="/badges" element={<Badges />} />
         </Routes>
       </main>
       <Footer />
