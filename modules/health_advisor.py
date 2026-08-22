@@ -102,7 +102,7 @@ def generate_plan(
         '  "modification_plan": ["\u5177\u4f53\u6539\u9020\u6b65\u9aa4\uff08\u66ff\u6362\u98df\u6750/\u6539\u53d8\u70f9\u996a\u6cd5/\u8c03\u6574\u5206\u91cf\uff09\uff0c3-6\u6761],\n'
         '  "healthy_dish_name": "\u6539\u9020\u540e\u7684\u83dc\u540d\uff08\u4e2d\u6587\uff09",\n'
         '  "image_prompt": "English text-to-image prompt describing the healthy version of this dish, keeping the same plating, tableware and camera angle",\n'
-        '  "expected_effects": "\u9884\u671f\u6548\u679c\uff0c\u7ed3\u5408\u7528\u6237\u76ee\u6807\u4e0e\u6863\u6848\uff0c\u7ed9\u51fa\u91cf\u5316\u4f30\u8ba1\uff08\u5982\u6bcf\u9910\u51cf\u5c11\u7ea6XXX kcal\uff0c\u575a\u63013\u4e2a\u6708\u53ef\u51cf\u91cd\u7ea6X kg\uff09"\n'
+        '  "expected_effects": "\u9884\u671f\u6548\u679c\uff0c\u7ed3\u5408\u7528\u6237\u76ee\u6807\u4e0e\u6863\u6848\uff0c\u7ed9\u51fa\u91cf\u5316\u4f30\u8ba1\uff08\u5982\u6bcf\u9910\u51cf\u5c11\u7ea6XXX kcal\uff0c\u575a\u63013\u4e2a\u6708\u53ef\u51cf\u91cd\u7ea6X kg\uff09",\n  "difficulty": "easy/medium/hard",\n  "before_after": {\n    "before": {"name": "\u539f\u83dc\u540d", "calories": 0, "tags": ["\u9ad8\u8102\u80aa"]},\n    "after": {"name": "\u6539\u9020\u540e\u83dc\u540d", "calories": 0, "tags": ["\u4f4e\u8102\u80aa"]}\n  }\n'
         "}"
     )
 

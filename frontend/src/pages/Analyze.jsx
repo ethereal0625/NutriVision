@@ -399,6 +399,66 @@ export default function Analyze() {
             </div>
           </div>
 
+
+          {/* 改造前后对比卡片 */}
+          {plan && plan.before_after && (
+            <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-brand-50 border border-brand-200/70 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-ink-800">🔄 改造前后对比</h3>
+                {plan.difficulty && (
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    plan.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                    plan.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {plan.difficulty === 'easy' ? '🟢 简单' :
+                     plan.difficulty === 'medium' ? '🟡 中等' : '🔴 困难'}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* 改造前 */}
+                <div className="rounded-xl bg-white/80 border-2 border-red-200 p-4">
+                  <div className="text-xs font-semibold text-red-600 mb-2">❌ 改造前</div>
+                  <div className="text-lg font-bold text-ink-800 mb-2">{plan.before_after.before?.name || '原菜品'}</div>
+                  <div className="text-2xl font-black text-red-600 mb-3">{plan.before_after.before?.calories || '?'} kcal</div>
+                  {plan.before_after.before?.tags && plan.before_after.before.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {plan.before_after.before.tags.map((tag, i) => (
+                        <span key={i} className="text-xs px-2 py-1 bg-red-50 text-red-600 rounded-full">🔴 {tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 改造后 */}
+                <div className="rounded-xl bg-white/80 border-2 border-green-200 p-4">
+                  <div className="text-xs font-semibold text-green-600 mb-2">✅ 改造后</div>
+                  <div className="text-lg font-bold text-ink-800 mb-2">{plan.before_after.after?.name || plan.healthy_dish_name || '健康版'}</div>
+                  <div className="text-2xl font-black text-green-600 mb-3">{plan.before_after.after?.calories || '?'} kcal</div>
+                  {plan.before_after.after?.tags && plan.before_after.after.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {plan.before_after.after.tags.map((tag, i) => (
+                        <span key={i} className="text-xs px-2 py-1 bg-green-50 text-green-600 rounded-full">✅ {tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 热量差值 */}
+              {plan.before_after.before?.calories && plan.before_after.after?.calories && (
+                <div className="mt-4 text-center">
+                  <div className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-500 text-white font-bold shadow-lg">
+                    🔥 每餐减少 {plan.before_after.before.calories - plan.before_after.after.calories} kcal
+                    {plan.expected_effects && <span className="ml-2 text-sm opacity-90">· {plan.expected_effects}</span>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 改造方案 */}
           {plan && (
             <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">

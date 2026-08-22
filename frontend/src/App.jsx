@@ -26,7 +26,8 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/about" element={<About />} />
           <Route path="/tips" element={<Tips />} />
-          <Route path="/profile" element={<Profile />} />`n          <Route path="/water" element={<Water />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/water" element={<Water />} />
         </Routes>
       </main>
       <Footer />
