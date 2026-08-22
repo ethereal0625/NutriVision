@@ -400,6 +400,198 @@ export default function Analyze() {
           </div>
 
 
+
+          {/* 营养评分卡片 */}
+          {result.nutrition_score && (
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-ink-800">📊 营养评分</h3>
+                <div className={`px-4 py-1.5 rounded-full text-sm font-black text-white ${
+                  result.nutrition_score.color === 'green' ? 'bg-green-500' :
+                  result.nutrition_score.color === 'blue' ? 'bg-blue-500' :
+                  result.nutrition_score.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
+                }`}>
+                  {result.nutrition_score.grade} · {result.nutrition_score.label} ({result.nutrition_score.score}分)
+                </div>
+              </div>
+
+              {/* 三项评分条 */}
+              <div className="space-y-3">
+                {[
+                  { label: '热量控制', score: result.nutrition_score.details.calorie_score, color: 'bg-brand-500' },
+                  { label: '营养均衡', score: result.nutrition_score.details.macro_score, color: 'bg-blue-500' },
+                  { label: '烹饪方式', score: result.nutrition_score.details.cooking_score, color: 'bg-amber-500' },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-xs text-ink-500 mb-1">
+                      <span>{item.label}</span>
+                      <span className="font-bold">{item.score}分</span>
+                    </div>
+                    <div className="h-2 bg-ink-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 改善建议 */}
+              {result.nutrition_score.advice && result.nutrition_score.advice.length > 0 && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <div className="text-xs font-semibold text-amber-700 mb-1">💡 改善建议</div>
+                  <ul className="space-y-1">
+                    {result.nutrition_score.advice.map((a, i) => (
+                      <li key={i} className="text-sm text-amber-800">· {a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+
+          {/* 营养评分卡片 */}
+          {result.nutrition_score && (
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-ink-800">📊 营养评分</h3>
+                <div className={`px-4 py-1.5 rounded-full text-sm font-black text-white ${
+                  result.nutrition_score.color === 'green' ? 'bg-green-500' :
+                  result.nutrition_score.color === 'blue' ? 'bg-blue-500' :
+                  result.nutrition_score.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
+                }`}>
+                  {result.nutrition_score.grade} · {result.nutrition_score.label} ({result.nutrition_score.score}分)
+                </div>
+              </div>
+
+              {/* 三项评分条 */}
+              <div className="space-y-3">
+                {[
+                  { label: '热量控制', score: result.nutrition_score.details.calorie_score, color: 'bg-brand-500' },
+                  { label: '营养均衡', score: result.nutrition_score.details.macro_score, color: 'bg-blue-500' },
+                  { label: '烹饪方式', score: result.nutrition_score.details.cooking_score, color: 'bg-amber-500' },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-xs text-ink-500 mb-1">
+                      <span>{item.label}</span>
+                      <span className="font-bold">{item.score}分</span>
+                    </div>
+                    <div className="h-2 bg-ink-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 改善建议 */}
+              {result.nutrition_score.advice && result.nutrition_score.advice.length > 0 && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <div className="text-xs font-semibold text-amber-700 mb-1">💡 改善建议</div>
+                  <ul className="space-y-1">
+                    {result.nutrition_score.advice.map((a, i) => (
+                      <li key={i} className="text-sm text-amber-800">· {a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+
+          {/* 营养评分卡片 */}
+          {result.nutrition_score && (
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-ink-800">📊 营养评分</h3>
+                <div className={`px-4 py-1.5 rounded-full text-sm font-black text-white ${
+                  result.nutrition_score.color === 'green' ? 'bg-green-500' :
+                  result.nutrition_score.color === 'blue' ? 'bg-blue-500' :
+                  result.nutrition_score.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
+                }`}>
+                  {result.nutrition_score.grade} · {result.nutrition_score.label} ({result.nutrition_score.score}分)
+                </div>
+              </div>
+
+              {/* 三项评分条 */}
+              <div className="space-y-3">
+                {[
+                  { label: '热量控制', score: result.nutrition_score.details.calorie_score, color: 'bg-brand-500' },
+                  { label: '营养均衡', score: result.nutrition_score.details.macro_score, color: 'bg-blue-500' },
+                  { label: '烹饪方式', score: result.nutrition_score.details.cooking_score, color: 'bg-amber-500' },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-xs text-ink-500 mb-1">
+                      <span>{item.label}</span>
+                      <span className="font-bold">{item.score}分</span>
+                    </div>
+                    <div className="h-2 bg-ink-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 改善建议 */}
+              {result.nutrition_score.advice && result.nutrition_score.advice.length > 0 && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <div className="text-xs font-semibold text-amber-700 mb-1">💡 改善建议</div>
+                  <ul className="space-y-1">
+                    {result.nutrition_score.advice.map((a, i) => (
+                      <li key={i} className="text-sm text-amber-800">· {a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+
+          {/* 营养评分卡片 */}
+          {result.nutrition_score && (
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-ink-800">📊 营养评分</h3>
+                <div className={`px-4 py-1.5 rounded-full text-sm font-black text-white ${
+                  result.nutrition_score.color === 'green' ? 'bg-green-500' :
+                  result.nutrition_score.color === 'blue' ? 'bg-blue-500' :
+                  result.nutrition_score.color === 'orange' ? 'bg-orange-500' : 'bg-red-500'
+                }`}>
+                  {result.nutrition_score.grade} · {result.nutrition_score.label} ({result.nutrition_score.score}分)
+                </div>
+              </div>
+
+              {/* 三项评分条 */}
+              <div className="space-y-3">
+                {[
+                  { label: '热量控制', score: result.nutrition_score.details.calorie_score, color: 'bg-brand-500' },
+                  { label: '营养均衡', score: result.nutrition_score.details.macro_score, color: 'bg-blue-500' },
+                  { label: '烹饪方式', score: result.nutrition_score.details.cooking_score, color: 'bg-amber-500' },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-xs text-ink-500 mb-1">
+                      <span>{item.label}</span>
+                      <span className="font-bold">{item.score}分</span>
+                    </div>
+                    <div className="h-2 bg-ink-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 改善建议 */}
+              {result.nutrition_score.advice && result.nutrition_score.advice.length > 0 && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <div className="text-xs font-semibold text-amber-700 mb-1">💡 改善建议</div>
+                  <ul className="space-y-1">
+                    {result.nutrition_score.advice.map((a, i) => (
+                      <li key={i} className="text-sm text-amber-800">· {a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 改造前后对比卡片 */}
           {plan && plan.before_after && (
             <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-brand-50 border border-brand-200/70 shadow-sm p-6">
