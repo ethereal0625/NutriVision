@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, getToken } from '../api.js'
 
@@ -19,7 +19,7 @@ export default function Profile() {
   const nav = useNavigate()
   const [token] = useState(getToken())
   const [data, setData] = useState(null)
-  const [form, setForm] = useState({ height_cm: '', weight_kg: '', age: '', gender: '男', activity: '轻度' })
+  const [form, setForm] = useState({ height_cm: '', weight_kg: '', age: '', gender: '男', activity: '轻度', water_goal: '2000' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -33,6 +33,7 @@ export default function Profile() {
         setForm({
           height_cm: p.height_cm ?? '', weight_kg: p.weight_kg ?? '',
           age: p.age ?? '', gender: p.gender || '男', activity: p.activity || '轻度',
+          water_goal: p.water_goal ?? '2000',
         })
       })
       .catch((e) => setError(e.message))
@@ -48,6 +49,7 @@ export default function Profile() {
         age: Number(form.age) || null,
         gender: form.gender,
         activity: form.activity,
+        water_goal: Number(form.water_goal) || 2000,
       })
       setData(p)
       setSaved(true)
@@ -132,6 +134,12 @@ export default function Profile() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-xs text-ink-500 mb-1.5">💧 每日饮水目标 (ml)</label>
+          <input type="number" className={inputCls} value={form.water_goal} onChange={(e) => setForm({ ...form, water_goal: e.target.value })} placeholder="2000" />
+          <div className="mt-1 text-[11px] text-ink-400">建议每天喝 1500-2500ml 水，约 8 杯</div>
         </div>
 
         <div className="mt-6 flex items-center gap-3">

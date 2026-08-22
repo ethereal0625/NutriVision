@@ -10,6 +10,7 @@ import History from './pages/History.jsx'
 import About from './pages/About.jsx'
 import Tips from './pages/Tips.jsx'
 import Profile from './pages/Profile.jsx'
+import Water from './pages/Water.jsx'
 
 export default function App() {
   return (
@@ -25,7 +26,7 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/about" element={<About />} />
           <Route path="/tips" element={<Tips />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<Profile />} />`n          <Route path="/water" element={<Water />} />
         </Routes>
       </main>
       <Footer />

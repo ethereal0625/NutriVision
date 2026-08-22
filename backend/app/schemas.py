@@ -1,4 +1,4 @@
-"""Pydantic 请求/响应模型"""
+﻿"""Pydantic 请求/响应模型"""
 from datetime import datetime
 from typing import List, Optional
 
@@ -73,6 +73,7 @@ class PlanUpdate(BaseModel):
     activity: Optional[str] = None
     calorie_mode: Optional[str] = None
     adjustment: Optional[int] = None
+    water_goal: Optional[int] = None
 
 
 class PlanOut(BaseModel):
@@ -92,7 +93,9 @@ class PlanOut(BaseModel):
     # 计算信息（get_plan 附加，非数据库字段）
     tdee: Optional[int] = None
     recommended_adjustment: Optional[int] = None
+    water_goal: Optional[int] = None
     target_note: str = ""
+    water_goal: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -130,3 +133,28 @@ class ProductOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class WaterLogCreate(BaseModel):
+    amount: int = 0
+    note: str = ""
+
+
+class WaterLogOut(BaseModel):
+    id: int
+    date: str
+    amount: int
+    total_today: int
+    note: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class WaterDayOut(BaseModel):
+    date: str
+    total: int
+    goal: int
+    percent: float
+    logs: List[WaterLogOut]

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @theme {
   /* Zoe 风格：奶油底 + 深墨绿 + 陶土橙点缀，克制高级 */
@@ -101,3 +101,14 @@ body {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: #d9d3c9; border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: #aaa298; }
+
+/* 鼓励话语弹入动画 */
+@keyframes bounce-in {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-bounce-in {
+  animation: bounce-in 0.5s ease-out;
+}

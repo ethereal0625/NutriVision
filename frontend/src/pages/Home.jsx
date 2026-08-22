@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 
 const features = [
   { icon: '🔍', title: '多模型视觉识别', desc: '通义千问 / 智谱 GLM-4V / 豆包，四款视觉模型可选，食材与克重级识别，一键对比。' },
@@ -7,6 +7,8 @@ const features = [
   { icon: '🔄', title: '食材替换建议', desc: 'AI 逐项分析，给出更健康的替代食材与替换理由。' },
   { icon: '📊', title: '营养仪表盘', desc: '食材热量占比、多模型对比、每日摄入占比，一目了然的可视化。' },
   { icon: '🎯', title: '每日目标与记录', desc: '按身体数据智能推荐热量缺口 / 盈余，记录每一餐，坚持看得见。' },
+  { icon: '💧', title: '饮水打卡', desc: '记录每日饮水量，连续打卡日历，打卡后鼓励话语让你更有动力。' },
+  { icon: '⚖️', title: '膳食动态补偿', desc: '午餐吃多了？AI 自动建议晚餐怎么吃，帮你拉回每日目标。' },
 ]
 
 const steps = [

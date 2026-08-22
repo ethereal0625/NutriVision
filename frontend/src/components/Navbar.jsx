@@ -24,6 +24,7 @@ export default function Navbar() {
     { to: '/analyze', icon: '📸', label: '分析', end: false },
     { to: '/plan', icon: '📋', label: '计划', end: false },
     { to: '/history', icon: '📅', label: '记录', end: false },
+    { to: '/water', icon: '💧', label: '饮水', end: false },
     { to: '/profile', icon: '👤', label: '我的', end: false },
   ]
 

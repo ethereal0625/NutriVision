@@ -1,4 +1,4 @@
-"""每日计划路由：设置目标 + 查看某天汇总"""
+﻿"""每日计划路由：设置目标 + 查看某天汇总"""
 import json
 from datetime import datetime
 
@@ -153,7 +153,7 @@ def update_plan(req: PlanUpdate, db: Session = Depends(get_db), user: User = Dep
         if v is not None:
             setattr(plan, attr, max(0, float(v)))
     # 个人档案
-    for attr in ("height_cm", "weight_kg", "age", "gender", "activity", "calorie_mode", "adjustment"):
+    for attr in ("height_cm", "weight_kg", "age", "gender", "activity", "calorie_mode", "adjustment", "water_goal"):
         v = getattr(req, attr, None)
         if v is not None:
             setattr(plan, attr, v)

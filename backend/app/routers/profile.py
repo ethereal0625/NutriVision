@@ -1,4 +1,4 @@
-"""个人中心路由：用户身体档案（身高/体重/年龄/性别/活动水平）+ BMI / TDEE"""
+﻿"""个人中心路由：用户身体档案（身高/体重/年龄/性别/活动水平）+ BMI / TDEE"""
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
