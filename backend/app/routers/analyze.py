@@ -14,6 +14,7 @@ if str(_PROJECT) not in sys.path:
 
 from modules.health_advisor import generate_plan, generate_swap_suggestions
 from modules.nutrition_db import bmi, bmi_category, compute_calories, compute_macros, lookup_macros, tdee
+from modules.nutrition_score import calculate_nutrition_score
 from modules.vision_analyzer import analyze_with_check
 
 from ..database import get_db
@@ -122,6 +123,15 @@ def analyze(
         macros["carbs_pct"] = round(macros["carbs"] * 4 / total_kcal_macro * 100, 1)
         macros["fat_pct"] = round(macros["fat"] * 9 / total_kcal_macro * 100, 1)
 
+        # 营养评分
+        nutrition_score = calculate_nutrition_score(
+            calories=primary_cc,
+            macros=macros,
+            cooking_method=primary.get("cooking_method", ""),
+            goal=goal,
+            target_calories=profile_info.get("tdee", 2000) if profile_info else 2000,
+        )
+
         # 品牌商品匹配（如蜜雪冰城柠檬水）
         matched_products = []
         try:
@@ -145,6 +155,7 @@ def analyze(
             "calories": primary_cc,
             "macros": macros,
             "macros_details": macros_details,
+            "nutrition_score": nutrition_score,
             "breakdown": primary_breakdown,
             "unlisted": primary_unlisted,
             "plan": plan,
