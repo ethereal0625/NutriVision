@@ -54,3 +54,14 @@ food_merged/
 # Temporary files
 *.tmp
 *.bak
+
+# PWA 生成的静态目录（run_app.py 自动重建）
+.app_static/
+
+# 本地 SD/ControlNet 模型（大文件，不提交）
+models/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+frontend/dist/

@@ -1,0 +1,474 @@
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { api, getToken } from '../api.js'
+
+const MODELS = [
+  { id: 'qwen-vl-plus', label: '通义千问 Qwen-VL-Plus' },
+  { id: 'qwen-vl-max', label: '通义千问 Qwen-VL-Max' },
+  { id: 'glm-4v', label: '智谱 GLM-4V' },
+  { id: 'doubao-seed-2.0', label: '豆包 Seed' },
+]
+const GOALS = ['减脂', '控糖', '增肌', '均衡饮食']
+
+export default function Analyze() {
+  const nav = useNavigate()
+  const [token, setToken] = useState(getToken())
+  const fileRef = useRef(null)
+  const [file, setFile] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [models, setModels] = useState(['qwen-vl-plus'])
+  const [goal, setGoal] = useState('减脂')
+  const [profileInfo, setProfileInfo] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
+  const [activeTab, setActiveTab] = useState(0)
+  const [mealType, setMealType] = useState('午餐')
+  const [weightEdits, setWeightEdits] = useState({})
+  const [edited, setEdited] = useState(false)
+
+  useEffect(() => { if (!token) nav('/login') }, [token])
+  useEffect(() => {
+    if (!token) return
+    api.getProfile().then(setProfileInfo).catch(() => {})
+  }, [token])
+
+  const onFileChange = (e) => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setFile(f)
+    setResult(null)
+    setSaved(false)
+    setPreview(URL.createObjectURL(f))
+  }
+
+  const run = async () => {
+    if (!file) return
+    setLoading(true); setError(''); setSaved(false); setResult(null)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('models', models.join(','))
+    fd.append('goal', goal)
+    fd.append('profile', '{}')
+    try {
+      const res = await api.analyze(fd)
+      setResult(res)
+      setWeightEdits({}); setEdited(false)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const saveHistory = async () => {
+    if (!result) return
+    const primary = result.results?.[result.primary_model] || {}
+    const adj = edited ? buildAdjusted() : result
+    try {
+      await api.saveHistory({
+        dish_name: primary.dish_name || '',
+        calories: edited ? (adj.calories || 0) : (result.calories || 0),
+        models: result.models.join(','),
+        goal,
+        result_json: JSON.stringify(adj),
+      })
+      setSaved(true)
+    } catch (e) { setError(e.message) }
+  }
+
+  const logToday = async () => {
+    if (!result) return
+    const primary = result.results?.[result.primary_model] || {}
+    const today = new Date().toISOString().slice(0, 10)
+    const adj = edited ? buildAdjusted() : result
+    try {
+      await api.saveHistory({
+        dish_name: primary.dish_name || '未知食物',
+        calories: edited ? (adj.calories || 0) : (result.calories || 0),
+        models: result.models.join(','),
+        goal,
+        result_json: JSON.stringify(adj),
+        date: today,
+        meal_type: mealType,
+      })
+      setSaved(true)
+    } catch (e) { setError(e.message) }
+  }
+
+  const modelList = result?.models || []
+  const primary = result?.results?.[result.primary_model] || {}
+  const plan = result?.plan || {}
+  const maxCal = Math.max(1, ...(result ? Object.values(result.calories_by_model || {}) : [1]))
+
+  // ===== 克重编辑：用户可修改 AI 估算的食材克重，热量与营养结构即时重算 =====
+  const effWeight = (m, i) => {
+    const v = weightEdits[`${m}:${i}`]
+    if (v !== undefined) return Number(v) || 0
+    return result?.breakdown_by_model?.[m]?.[i]?.weight_g ?? 0
+  }
+  const effCalories = (m) => {
+    const bd = result?.breakdown_by_model?.[m] || []
+    return bd.reduce((sum, b, i) => sum + effWeight(m, i) * (b.kcal_per_100g || 0) / 100, 0)
+  }
+  const effMacros = (m) => {
+    const bd = result?.breakdown_by_model?.[m] || []
+    let p = 0, c = 0, f = 0
+    bd.forEach((b, i) => {
+      const w = effWeight(m, i)
+      p += w * (b.protein_per_100g || 0) / 100
+      c += w * (b.carbs_per_100g || 0) / 100
+      f += w * (b.fat_per_100g || 0) / 100
+    })
+    return { protein: Math.round(p), carbs: Math.round(c), fat: Math.round(f) }
+  }
+  const primaryCal = Math.round(effCalories(result?.primary_model))
+  const primaryMacros = effMacros(result?.primary_model)
+  const primaryKcal = primaryCal * 4.184
+  // 保存历史前把修正后的数据写回 result（周报/历史读到的也是修正值）
+  const buildAdjusted = () => {
+    const adj = JSON.parse(JSON.stringify(result))
+    adj.calories = primaryCal
+    adj.calories_by_model = {}
+    for (const m of modelList) adj.calories_by_model[m] = Math.round(effCalories(m))
+    const pm = effMacros(result?.primary_model)
+    const totalK = (pm.protein * 4 + pm.carbs * 4 + pm.fat * 9) || 1
+    adj.macros = {
+      protein: pm.protein, carbs: pm.carbs, fat: pm.fat,
+      protein_pct: Math.round(pm.protein * 4 / totalK * 1000) / 10,
+      carbs_pct: Math.round(pm.carbs * 4 / totalK * 1000) / 10,
+      fat_pct: Math.round(pm.fat * 9 / totalK * 1000) / 10,
+    }
+    adj.breakdown_by_model = {}
+    for (const m of modelList) {
+      adj.breakdown_by_model[m] = (result?.breakdown_by_model?.[m] || []).map((b, i) => ({
+        ...b,
+        weight_g: effWeight(m, i),
+        calories: Math.round(effWeight(m, i) * (b.kcal_per_100g || 0) / 100),
+      }))
+    }
+    return adj
+  }
+
+
+  const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition bg-white'
+
+  return (
+    <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="text-center mb-10">
+        <h1 className="text-3xl sm:text-4xl font-black text-ink-800">🍽️ 食物分析</h1>
+        <p className="mt-2 text-ink-500">上传食物照片 → 多模型识别 → 营养核算 → 健康改造方案</p>
+      </div>
+
+      {/* 上传 + 设置 */}
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6">
+        {/* 左侧：上传 */}
+        <div className="rounded-3xl bg-white border border-ink-200/70 shadow-sm p-6">
+          <div
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) { setFile(f); setResult(null); setSaved(false); setPreview(URL.createObjectURL(f)) } }}
+            className="cursor-pointer rounded-2xl border-2 border-dashed border-brand-300 bg-brand-50/50 hover:bg-brand-50 hover:border-brand-400 transition-all p-10 text-center">
+            {preview ? (
+              <img src={preview} alt="preview" className="mx-auto max-h-72 rounded-xl shadow-md" />
+            ) : (
+              <div className="py-8">
+                <div className="text-5xl mb-3">📸</div>
+                <p className="font-semibold text-ink-700">点击或拖拽上传食物图片</p>
+                <p className="mt-1 text-sm text-ink-400">支持 JPG / PNG，单张不超过 20MB</p>
+              </div>
+            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png" hidden onChange={onFileChange} />
+          <button onClick={run} disabled={!file || loading}
+            className="mt-5 w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:shadow-lg hover:shadow-brand-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+            {loading ? '🔍 分析中，请稍候...' : '🚀 开始分析'}
+          </button>
+          {error && <div className="mt-4 px-4 py-3 rounded-xl bg-red-50 text-red-600 text-sm">{error}</div>}
+        </div>
+
+        {/* 右侧：设置 */}
+        <div className="rounded-3xl bg-white border border-ink-200/70 shadow-sm p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-ink-700 mb-2">🧠 视觉模型（可多选）</label>
+            <div className="space-y-2">
+              {MODELS.map((m) => (
+                <label key={m.id} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border cursor-pointer transition ${models.includes(m.id) ? 'border-brand-500 bg-brand-50' : 'border-ink-200 hover:border-ink-300'}`}>
+                  <input type="checkbox" checked={models.includes(m.id)} onChange={() => setModels(models.includes(m.id) ? models.filter(x => x !== m.id) : [...models, m.id])} className="w-4 h-4 accent-brand-600" />
+                  <span className="text-sm text-ink-700">{m.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-ink-700 mb-2">🎯 健康目标</label>
+            <div className="grid grid-cols-4 gap-2">
+              {GOALS.map((g) => (
+                <button key={g} onClick={() => setGoal(g)}
+                  className={`py-2 rounded-xl text-sm font-medium transition ${goal === g ? 'bg-brand-600 text-white shadow' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-ink-700 mb-2">👤 我的档案</div>
+            {profileInfo?.has_profile ? (
+              <div className="rounded-xl bg-brand-50 border border-brand-100 p-3.5 text-sm">
+                <div className="text-brand-700 font-semibold">✅ 已自动使用个人档案</div>
+                <div className="mt-1.5 text-xs text-ink-600 leading-relaxed">
+                  {profileInfo.height_cm}cm · {profileInfo.weight_kg}kg · {profileInfo.age}岁 · {profileInfo.gender}
+                  <br />BMI <b>{profileInfo.bmi}</b>（{profileInfo.bmi_category}）· 每日消耗约 <b>{profileInfo.tdee} kcal</b>
+                </div>
+                <Link to="/profile" className="mt-2 inline-block text-xs font-semibold text-brand-600 hover:text-brand-700">修改档案 →</Link>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-ink-100/70 border border-ink-200 p-3.5 text-sm">
+                <div className="text-ink-600 font-semibold">📝 未填写个人档案</div>
+                <div className="mt-1 text-xs text-ink-400">当前按基础方式分析。填写后改造方案会结合你的 BMI 和每日消耗，更个性化</div>
+                <Link to="/profile" className="mt-2 inline-block text-xs font-semibold text-brand-600 hover:text-brand-700">去完善档案 →</Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ===== 分析结果 ===== */}
+      {result && result.is_food && (
+        <div className="mt-10 space-y-6 fade-up">
+          {/* 原图 + 概览 */}
+          <div className="grid md:grid-cols-[280px_1fr] gap-6">
+            <div className="rounded-2xl overflow-hidden border border-ink-200/70 shadow-sm">
+              {preview && <img src={preview} alt="原图" className="w-full object-cover" />}
+              <div className="p-3 text-center text-xs text-ink-500 bg-white">原图 · {primary.dish_name || '未识别菜名'}</div>
+            </div>
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-black text-brand-600">{primaryCal}</div>
+                  <div className="text-xs text-ink-500 mt-1">营养库核算 (kcal) · 约 {Math.round(primaryKcal)} kJ</div>
+                  {edited && <div className="mt-1 text-[11px] font-semibold text-orange-500">✏️ 已按修正克重</div>}
+                </div>
+                <div><div className="text-2xl font-black text-ink-800">{primary.model_calories ?? '-'}</div><div className="text-xs text-ink-500 mt-1">模型估算 (kcal)</div></div>
+                <div><div className="text-2xl font-black text-ink-800">{result.models.length}</div><div className="text-xs text-ink-500 mt-1">使用模型</div></div>
+              </div>
+              {result.matched_products?.length > 0 && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-orange-50 border border-orange-100">
+                  <div className="text-xs font-semibold text-orange-600 mb-1">🏷️ 品牌商品热量参考</div>
+                  {result.matched_products.map((mp, i) => (
+                    <div key={i} className="text-sm text-ink-700">
+                      {mp.brand} · {mp.name}（{mp.serving}）<span className="font-bold text-orange-600">{mp.kcal} kcal</span>
+                      {mp.note ? <span className="text-xs text-ink-400"> · {mp.note}</span> : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700">
+                💡 小知识：1 大卡(kcal) ≈ 4.18 千焦(kJ)。食品包装上的 kJ 除以 4 左右才是大卡，别搞混啦。
+              </div>
+              <div className="mt-3">
+                <div className="text-xs font-semibold text-ink-500 mb-1.5">各模型热量对比</div>
+                <div className="space-y-2">
+                  {modelList.map((m) => (
+                    <div key={m}>
+                      <div className="flex justify-between text-xs text-ink-600 mb-0.5">
+                        <span>{MODELS.find(x => x.id === m)?.label || m}</span>
+                        <span className="font-semibold">{Math.round(effCalories(m))} kcal</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-ink-100 overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-400 transition-all"
+                          style={{ width: `${(Math.round(effCalories(m)) / maxCal) * 100}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {result.macros && (
+                <div className="mt-5 border-t border-ink-100 pt-4">
+                  <div className="text-xs font-semibold text-ink-500 mb-2">🥩 营养结构（蛋白质 / 碳水 / 脂肪）</div>
+                  <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                    <div className="rounded-xl bg-red-50 p-2.5">
+                      <div className="text-lg font-black text-red-500">{primaryMacros.protein}g</div>
+                      <div className="text-xs text-ink-500">蛋白质 · {Math.round(primaryMacros.protein * 4 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100 * 10) / 10}%</div>
+                    </div>
+                    <div className="rounded-xl bg-amber-50 p-2.5">
+                      <div className="text-lg font-black text-amber-600">{primaryMacros.carbs}g</div>
+                      <div className="text-xs text-ink-500">碳水 · {Math.round(primaryMacros.carbs * 4 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100 * 10) / 10}%</div>
+                    </div>
+                    <div className="rounded-xl bg-orange-50 p-2.5">
+                      <div className="text-lg font-black text-orange-500">{primaryMacros.fat}g</div>
+                      <div className="text-xs text-ink-500">脂肪 · {Math.round(primaryMacros.fat * 9 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100 * 10) / 10}%</div>
+                    </div>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-ink-100 overflow-hidden flex">
+                    <div className="h-full bg-red-400" style={{ width: `${Math.round(primaryMacros.protein * 4 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100)}%` }} />
+                    <div className="h-full bg-amber-400" style={{ width: `${Math.round(primaryMacros.carbs * 4 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100)}%` }} />
+                    <div className="h-full bg-orange-400" style={{ width: `${Math.round(primaryMacros.fat * 9 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100)}%` }} />
+                  </div>
+                  <div className="mt-1.5 text-xs text-ink-400">按供能占比：蛋白质 {Math.round(primaryMacros.protein * 4 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100 * 10) / 10}% · 碳水 {Math.round(primaryMacros.carbs * 4 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100 * 10) / 10}% · 脂肪 {Math.round(primaryMacros.fat * 9 / ((primaryMacros.protein * 4 + primaryMacros.carbs * 4 + primaryMacros.fat * 9) || 1) * 100 * 10) / 10}%</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 每个模型的分析 Tab */}
+          <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm overflow-hidden">
+            <div className="flex border-b border-ink-200 overflow-x-auto">
+              {modelList.map((m, i) => (
+                <button key={m} onClick={() => setActiveTab(i)}
+                  className={`px-5 py-3 text-sm font-semibold whitespace-nowrap transition ${activeTab === i ? 'text-brand-700 border-b-2 border-brand-600' : 'text-ink-500 hover:text-ink-700'}`}>
+                  {MODELS.find(x => x.id === m)?.label || m}
+                </button>
+              ))}
+            </div>
+            <div className="p-6">
+              {(() => {
+                const m = modelList[activeTab]
+                const a = result.results?.[m] || {}
+                const bd = result.breakdown_by_model?.[m] || []
+                return (
+                  <div className="grid lg:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-bold text-ink-800">菜名：{a.dish_name || '-'}</h3>
+                      <p className="text-sm text-ink-500 mt-1">烹饪方式：{a.cooking_method || '-'}</p>
+                      <div className="mt-4">
+                        <div className="text-xs font-semibold text-ink-500 mb-1.5">风险标签</div>
+                        <div className="flex flex-wrap gap-2">
+                          {(a.health_risk_tags || []).map((t) => (
+                            <span key={t} className="px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-medium">{t}</span>
+                          ))}
+                          {!(a.health_risk_tags || []).length && <span className="px-2.5 py-1 rounded-full bg-brand-50 text-brand-600 text-xs font-medium">无明显风险</span>}
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <div className="text-xs font-semibold text-ink-500 mb-1.5">视觉描述（英文）</div>
+                        <p className="text-sm text-ink-600 leading-relaxed">{a.visual_description || '-'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="text-xs font-semibold text-ink-500">热量明细（成分表法）</div>
+                        <div className="text-[11px] text-ink-400">✏️ 克重可修改，热量与营养即时重算</div>
+                      </div>
+                      <div className="overflow-x-auto rounded-xl border border-ink-200">
+                        <table className="w-full text-sm">
+                          <thead className="bg-brand-50 text-brand-700">
+                            <tr><th className="px-3 py-2 text-left">食材</th><th className="px-3 py-2 text-right">克重(g)</th><th className="px-3 py-2 text-right">每100g</th><th className="px-3 py-2 text-right">小计</th></tr>
+                          </thead>
+                          <tbody>
+                            {(bd || []).map((b, i) => {
+                              const w = effWeight(m, i)
+                              const sub = Math.round(w * (b.kcal_per_100g || 0) / 100)
+                              return (
+                                <tr key={i} className="border-t border-ink-200">
+                                  <td className="px-3 py-2">{b.name}</td>
+                                  <td className="px-3 py-2 text-right">
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={w}
+                                      onChange={(e) => {
+                                        setWeightEdits((prev) => ({ ...prev, [`${m}:${i}`]: e.target.value }))
+                                        setEdited(true)
+                                      }}
+                                      className="w-20 px-1.5 py-1 text-right rounded-lg border border-ink-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition"
+                                    />
+                                  </td>
+                                  <td className="px-3 py-2 text-right">{b.kcal_per_100g}</td>
+                                  <td className="px-3 py-2 text-right font-semibold">{sub}</td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                          <tfoot>
+                            <tr className="border-t-2 border-brand-200 bg-brand-50/60">
+                              <td className="px-3 py-2 font-bold text-brand-700" colSpan={3}>合计</td>
+                              <td className="px-3 py-2 text-right font-black text-brand-700">{Math.round(effCalories(m))} kcal</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+
+          {/* 改造方案 */}
+          {plan && (
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <h3 className="text-lg font-bold text-ink-800">
+                💡 「{goal}」改造方案 → <span className="text-brand-600">{plan.healthy_dish_name || ''}</span>
+              </h3>
+              <div className="mt-4 grid md:grid-cols-2 gap-6">
+                <div>
+                  <div className="text-xs font-semibold text-red-500 mb-1.5">不健康点</div>
+                  <ul className="space-y-1.5">
+                    {(plan.risk_points || []).map((p, i) => <li key={i} className="text-sm text-ink-600">🔴 {p}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-brand-600 mb-1.5">改造步骤</div>
+                  <ol className="space-y-1.5">
+                    {(plan.modification_plan || []).map((s, i) => <li key={i} className="text-sm text-ink-600">{i + 1}. ✅ {s}</li>)}
+                  </ol>
+                </div>
+              </div>
+              {plan.expected_effects && (
+                <div className="mt-4 px-4 py-3 rounded-xl bg-brand-50 text-brand-700 text-sm font-medium">{plan.expected_effects}</div>
+              )}
+            </div>
+          )}
+
+          {/* 替换建议 */}
+          {result.swap_suggestions?.length > 0 && (
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <h3 className="text-lg font-bold text-ink-800">🔄 食材替换建议</h3>
+              <div className="mt-4 grid sm:grid-cols-2 gap-3">
+                {result.swap_suggestions.map((s, i) => (
+                  <div key={i} className="rounded-xl bg-ink-100 p-4">
+                    <div className="text-sm font-semibold text-ink-700">
+                      {s.original} <span className="text-brand-600">→</span> {s.swap}
+                    </div>
+                    <div className="mt-1 text-xs text-ink-500">{s.reason}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 保存历史 */}
+          <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+            <h3 className="text-lg font-bold text-ink-800">📅 记入每日计划</h3>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <select value={mealType} onChange={(e) => setMealType(e.target.value)}
+                className="px-4 py-2.5 rounded-xl border border-ink-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition bg-white text-sm font-medium">
+                {['早餐', '午餐', '晚餐', '加餐', '饮品'].map((m) => <option key={m}>{m}</option>)}
+              </select>
+              <button onClick={logToday}
+                className="px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:shadow-lg hover:shadow-brand-500/30 transition-all">
+                ➕ 记入今天（{primaryCal} kcal）
+              </button>
+              {saved && <span className="text-sm font-medium text-brand-600">✅ 已记入今日</span>}
+              <Link to="/plan" className="px-6 py-2.5 rounded-xl font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 transition">
+                查看每日计划 →
+              </Link>
+              <Link to="/history" className="px-6 py-2.5 rounded-xl font-semibold text-ink-600 bg-ink-100 hover:bg-ink-200 transition">
+                全部历史
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 未检测到食物 */}
+      {result && !result.is_food && (
+        <div className="mt-10 rounded-2xl bg-orange-50 border border-orange-200 p-6 text-center text-orange-700">
+          {result.message || '未检测到食物，请换一张图片试试'}
+        </div>
+      )}
+    </div>
+  )
+}

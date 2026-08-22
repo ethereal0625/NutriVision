@@ -1,8 +1,8 @@
-﻿# NutriVision - AI 健康饮食改造师
+# NutriVision - AI 健康饮食改造师
 
 基于视觉语言大模型（VLM）的个性化健康饮食方案系统：用户上传一张食物照片，系统自动识别菜品成分并估算克重，结合用户的健康目标（减脂 / 控糖 / 增肌 / 均衡饮食）与可选个人档案（身高/体重/年龄等），生成个性化的烹饪改造方案与预期效果，并输出改造后的"健康版"菜品效果图。
 
-> 华中科技大学《视觉与自然语言处理》课程 Final Project
+> AI 健康饮食改造师 · NutriVision
 
 ## ✨ 功能亮点
 
@@ -99,4 +99,5 @@ NutriVision/
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE).
+
 

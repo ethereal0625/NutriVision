@@ -1,0 +1,21 @@
+{
+  "model": "doubao-seed-2.0",
+  "label": "豆包 Seed",
+  "total": 20,
+  "valid": 20,
+  "avg_scores": {
+    "json_valid": 1.0,
+    "fields_present": 0.97,
+    "dish_name_bilingual": 0.05,
+    "ingredient_count": 5.25,
+    "ingredient_sufficient": 0.8,
+    "cooking_method_english": 1.0,
+    "tags_valid": 0.775,
+    "vd_length": 282.9,
+    "vd_sufficient": 1.0
+  },
+  "json_valid_rate": 1.0,
+  "avg_fields_present": 0.97,
+  "avg_ingredient_count": 5.25,
+  "avg_vd_length": 282.9
+}

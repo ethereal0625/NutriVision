@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  /* Zoe 风格：奶油底 + 深墨绿 + 陶土橙点缀，克制高级 */
+  --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --color-brand-50: #f2f5f2;
+  --color-brand-100: #e3e9e4;
+  --color-brand-200: #c7d3c9;
+  --color-brand-300: #9db1a2;
+  --color-brand-400: #6f8a7b;
+  --color-brand-500: #50695b;
+  --color-brand-600: #3d564b;
+  --color-brand-700: #32463e;
+  --color-brand-800: #293832;
+  --color-brand-900: #1d2924;
+  /* 陶土橙点缀（CTA / 强调） */
+  --color-accent-50: #fdf3ee;
+  --color-accent-100: #f9e3d7;
+  --color-accent-200: #f0c4ac;
+  --color-accent-300: #e59e79;
+  --color-accent-400: #d97b4f;
+  --color-accent-500: #c9633a;
+  --color-accent-600: #b0502e;
+  --color-accent-700: #8f4026;
+  /* 暖墨文字 */
+  --color-ink-100: #f7f5f1;
+  --color-ink-200: #ece8e1;
+  --color-ink-300: #d9d3c9;
+  --color-ink-400: #aaa298;
+  --color-ink-500: #7d756b;
+  --color-ink-600: #554f47;
+  --color-ink-700: #3c3731;
+  --color-ink-800: #282420;
+  --color-ink-900: #191613;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink-800);
+  background-color: #faf8f4;
+}
+
+/* 奶油底 + 极淡暖调渐变（Zoe 式大留白背景） */
+.bg-mesh {
+  background-color: #faf8f4;
+  background-image:
+    radial-gradient(at 15% 10%, rgba(80,105,91,.06) 0px, transparent 42%),
+    radial-gradient(at 85% 20%, rgba(201,99,58,.05) 0px, transparent 38%),
+    radial-gradient(at 70% 85%, rgba(80,105,91,.05) 0px, transparent 45%),
+    radial-gradient(at 20% 90%, rgba(201,99,58,.04) 0px, transparent 40%);
+}
+
+.bg-dark-hero {
+  background-color: #14110e;
+  background-image:
+    radial-gradient(at 22% 30%, rgba(80,105,91,.38) 0px, transparent 52%),
+    radial-gradient(at 80% 15%, rgba(201,99,58,.16) 0px, transparent 45%),
+    radial-gradient(at 60% 95%, rgba(80,105,91,.22) 0px, transparent 55%);
+}
+
+.glass {
+  background: rgba(255,255,255,.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 1px 2px rgba(25,22,19,.04), 0 8px 28px rgba(25,22,19,.05);
+}
+
+.text-gradient {
+  background: linear-gradient(115deg, #50695b, #6f8a7b 55%, #c9633a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 轻卡片：细边框 + 极轻阴影（Zoe 式） */
+.card-soft {
+  background: #fff;
+  border: 1px solid rgba(217,211,201,.7);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(25,22,19,.03);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .6s ease both; }
+.fade-up-1 { animation: fadeUp .6s .08s ease both; }
+.fade-up-2 { animation: fadeUp .6s .16s ease both; }
+.fade-up-3 { animation: fadeUp .6s .24s ease both; }
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.floaty { animation: floaty 5s ease-in-out infinite; }
+
+/* 自定义滚动条 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d9d3c9; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa298; }

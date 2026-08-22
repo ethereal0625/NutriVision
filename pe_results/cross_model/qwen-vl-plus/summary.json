@@ -1,0 +1,21 @@
+{
+  "model": "qwen-vl-plus",
+  "label": "通义千问 Qwen-VL-Plus",
+  "total": 20,
+  "valid": 20,
+  "avg_scores": {
+    "json_valid": 1.0,
+    "fields_present": 0.97,
+    "dish_name_bilingual": 0.0,
+    "ingredient_count": 5.4,
+    "ingredient_sufficient": 0.85,
+    "cooking_method_english": 0.95,
+    "tags_valid": 0.7083333333333333,
+    "vd_length": 414.7,
+    "vd_sufficient": 1.0
+  },
+  "json_valid_rate": 1.0,
+  "avg_fields_present": 0.97,
+  "avg_ingredient_count": 5.4,
+  "avg_vd_length": 414.7
+}

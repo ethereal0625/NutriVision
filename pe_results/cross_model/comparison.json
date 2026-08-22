@@ -1,0 +1,86 @@
+[
+  {
+    "model": "qwen-vl-plus",
+    "label": "通义千问 Qwen-VL-Plus",
+    "total": 20,
+    "valid": 20,
+    "avg_scores": {
+      "json_valid": 1.0,
+      "fields_present": 0.97,
+      "dish_name_bilingual": 0.0,
+      "ingredient_count": 5.4,
+      "ingredient_sufficient": 0.85,
+      "cooking_method_english": 0.95,
+      "tags_valid": 0.7083333333333333,
+      "vd_length": 414.7,
+      "vd_sufficient": 1.0
+    },
+    "json_valid_rate": 1.0,
+    "avg_fields_present": 0.97,
+    "avg_ingredient_count": 5.4,
+    "avg_vd_length": 414.7
+  },
+  {
+    "model": "qwen-vl-max",
+    "label": "通义千问 Qwen-VL-Max",
+    "total": 20,
+    "valid": 20,
+    "avg_scores": {
+      "json_valid": 1.0,
+      "fields_present": 0.95,
+      "dish_name_bilingual": 0.1,
+      "ingredient_count": 6.45,
+      "ingredient_sufficient": 0.775,
+      "cooking_method_english": 1.0,
+      "tags_valid": 0.7591666666666667,
+      "vd_length": 411.85,
+      "vd_sufficient": 1.0
+    },
+    "json_valid_rate": 1.0,
+    "avg_fields_present": 0.95,
+    "avg_ingredient_count": 6.45,
+    "avg_vd_length": 411.85
+  },
+  {
+    "model": "glm-4v",
+    "label": "智谱 GLM-4V",
+    "total": 20,
+    "valid": 20,
+    "avg_scores": {
+      "json_valid": 1.0,
+      "fields_present": 0.9400000000000001,
+      "dish_name_bilingual": 0.1,
+      "ingredient_count": 5.45,
+      "ingredient_sufficient": 0.775,
+      "cooking_method_english": 1.0,
+      "tags_valid": 0.765,
+      "vd_length": 343.95,
+      "vd_sufficient": 1.0
+    },
+    "json_valid_rate": 1.0,
+    "avg_fields_present": 0.9400000000000001,
+    "avg_ingredient_count": 5.45,
+    "avg_vd_length": 343.95
+  },
+  {
+    "model": "doubao-seed-2.0",
+    "label": "豆包 Seed",
+    "total": 20,
+    "valid": 20,
+    "avg_scores": {
+      "json_valid": 1.0,
+      "fields_present": 0.97,
+      "dish_name_bilingual": 0.05,
+      "ingredient_count": 5.25,
+      "ingredient_sufficient": 0.8,
+      "cooking_method_english": 1.0,
+      "tags_valid": 0.775,
+      "vd_length": 282.9,
+      "vd_sufficient": 1.0
+    },
+    "json_valid_rate": 1.0,
+    "avg_fields_present": 0.97,
+    "avg_ingredient_count": 5.25,
+    "avg_vd_length": 282.9
+  }
+]

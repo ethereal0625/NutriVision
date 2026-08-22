@@ -1,0 +1,21 @@
+{
+  "model": "glm-4v",
+  "label": "智谱 GLM-4V",
+  "total": 20,
+  "valid": 20,
+  "avg_scores": {
+    "json_valid": 1.0,
+    "fields_present": 0.9400000000000001,
+    "dish_name_bilingual": 0.1,
+    "ingredient_count": 5.45,
+    "ingredient_sufficient": 0.775,
+    "cooking_method_english": 1.0,
+    "tags_valid": 0.765,
+    "vd_length": 343.95,
+    "vd_sufficient": 1.0
+  },
+  "json_valid_rate": 1.0,
+  "avg_fields_present": 0.9400000000000001,
+  "avg_ingredient_count": 5.45,
+  "avg_vd_length": 343.95
+}

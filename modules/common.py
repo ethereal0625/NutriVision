@@ -45,12 +45,52 @@ def load_doubao_api_key() -> str:
     return load_api_key("doubao")
 
 
+def _extract_json_span(text: str):
+    """找到第一个完整 JSON 对象/数组的起始与结束下标，失败返回 None。"""
+    for i, ch in enumerate(text):
+        if ch not in "[{":
+            continue
+        depth = 0
+        in_str = False
+        escape = False
+        for j in range(i, len(text)):
+            c = text[j]
+            if in_str:
+                if escape:
+                    escape = False
+                elif c == "\\":
+                    escape = True
+                elif c == '"':
+                    in_str = False
+                continue
+            if c == '"':
+                in_str = True
+            elif c in "[{":
+                depth += 1
+            elif c in "]}":
+                depth -= 1
+                if depth == 0:
+                    return i, j + 1
+        break
+    return None
+
+
 def parse_json(text: str) -> Any:
-    """Extract and parse the first JSON object from model output text."""
-    m = re.search(r"\{.*\}", text, re.S)
-    if not m:
-        raise ValueError(f"\u65e0\u6cd5\u89e3\u6790\u6a21\u578b\u8f93\u51fa: {text[:100]}")
-    return json.loads(m.group(0))
+    """Extract and parse the first JSON object/array from model output text."""
+    text = (text or "").strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+    span = _extract_json_span(text)
+    if span:
+        try:
+            return json.loads(text[span[0]:span[1]])
+        except Exception:
+            pass
+    raise ValueError(f"\u65e0\u6cd5\u89e3\u6790\u6a21\u578b\u8f93\u51fa: {text[:100]}")
 
 
 def retry(fn: Callable, attempts: Optional[int] = None) -> Any:
