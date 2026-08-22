@@ -40,6 +40,15 @@ def _migrate():
             ]:
                 if col not in cols:
                     db.execute(text(f"ALTER TABLE user_plans ADD COLUMN {col} {ddl}"))
+        if "users" in insp.get_table_names():
+            cols = {c["name"] for c in insp.get_columns("users")}
+            for col, ddl in [
+                ("zhipu_api_key", "VARCHAR(200) DEFAULT ''"),
+                ("dashscope_api_key", "VARCHAR(200) DEFAULT ''"),
+                ("doubao_api_key", "VARCHAR(200) DEFAULT ''"),
+            ]:
+                if col not in cols:
+                    db.execute(text(f"ALTER TABLE users ADD COLUMN {col} {ddl}"))
         db.commit()
 
 _migrate()

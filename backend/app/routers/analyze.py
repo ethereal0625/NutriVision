@@ -1,5 +1,6 @@
 ﻿"""食物分析路由：多模型视觉分析 + 营养核算 + 改造方案"""
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -24,8 +25,25 @@ from ..models import FoodProduct, HistoryItem, User, UserPlan
 router = APIRouter(prefix="/api", tags=["analyze"])
 
 DEFAULT_MODELS = ["qwen-vl-plus"]
+
+def _setup_user_api_keys(user):
+    if user.zhipu_api_key: os.environ["ZHIPU_API_KEY"] = user.zhipu_api_key
+    if user.dashscope_api_key: os.environ["DASHSCOPE_API_KEY"] = user.dashscope_api_key
+    if user.doubao_api_key: os.environ["DOUBAO_API_KEY"] = user.doubao_api_key
+
+def _get_available_models(user):
+    ms = [{"id": "glm-4v-flash", "label": "æºè°± GLM-4V-Flash (åè´¹)", "free": True}]
+    if user.zhipu_api_key: ms.append({"id": "glm-4v", "label": "æºè°± GLM-4V", "free": False})
+    if user.dashscope_api_key: ms.append({"id": "qwen-vl-plus", "label": "éä¹åé® Qwen-VL-Plus", "free": False})
+    if user.dashscope_api_key: ms.append({"id": "qwen-vl-max", "label": "éä¹åé® Qwen-VL-Max", "free": False})
+    if user.doubao_api_key: ms.append({"id": "doubao-seed-2.0", "label": "è±å Seed", "free": False})
+    return ms
 VALID_GOALS = ["减脂", "控糖", "增肌", "均衡饮食"]
 
+
+@router.get("/models")
+def get_models(db=Depends(get_db), user: User = Depends(get_current_user)):
+    return {"models": _get_available_models(user)}
 
 @router.post("/analyze")
 def analyze(
@@ -54,6 +72,7 @@ def analyze(
                 }
         except Exception:
             profile_data = {}
+    _setup_user_api_keys(user)
     model_list = [m.strip() for m in models.split(",") if m.strip()] or DEFAULT_MODELS
 
     suffix = Path(file.filename or "food.jpg").suffix or ".jpg"

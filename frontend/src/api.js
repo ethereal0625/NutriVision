@@ -78,5 +78,6 @@ export const api = {
   getTips: () => request('/tips'),
   getBadges: () => request('/badges'),
   getReport: (days) => requestText(`/report?days=${days || 7}`),
+  getModels: () => request("/models"),
   getCompensate: (date) => request(`/compensate?date_str=${date || ''}`),
 }

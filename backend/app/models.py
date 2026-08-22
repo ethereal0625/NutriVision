@@ -14,6 +14,10 @@ class User(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(300), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # 用户自定义 API Key（进阶功能）
+    zhipu_api_key = Column(String(200), default="")
+    dashscope_api_key = Column(String(200), default="")
+    doubao_api_key = Column(String(200), default="")
 
     history = relationship("HistoryItem", back_populates="user", cascade="all, delete-orphan")
     plan = relationship("UserPlan", back_populates="user", cascade="all, delete-orphan", uselist=False)

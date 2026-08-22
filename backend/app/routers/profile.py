@@ -19,7 +19,7 @@ except Exception:
 ACTIVITIES = ["久坐", "轻度", "中度", "高强度"]
 
 
-def _build_profile(plan: UserPlan) -> dict:
+def _build_profile(plan: UserPlan, user: User) -> dict:
     has = bool(plan.height_cm and plan.weight_kg and plan.age)
     height = float(plan.height_cm or 0)
     weight = float(plan.weight_kg or 0)
@@ -33,6 +33,10 @@ def _build_profile(plan: UserPlan) -> dict:
         "gender": gender,
         "activity": activity,
         "has_profile": has,
+        # API Key 配置状态（不返回完整 Key，只返回是否已配置）
+        "has_zhipu_key": bool(user.zhipu_api_key),
+        "has_dashscope_key": bool(user.dashscope_api_key),
+        "has_doubao_key": bool(user.doubao_api_key),
     }
     if has:
         info["bmi"] = bmi(height, weight)
@@ -48,7 +52,7 @@ def _build_profile(plan: UserPlan) -> dict:
 @router.get("")
 def get_profile(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     plan = _get_or_create_plan(db, user)
-    return _build_profile(plan)
+    return _build_profile(plan, user)
 
 
 @router.put("")
@@ -64,6 +68,15 @@ def update_profile(req: dict, db: Session = Depends(get_db), user: User = Depend
         plan.gender = req["gender"]
     if "activity" in req and req["activity"] in ACTIVITIES:
         plan.activity = req["activity"]
+    # 保存 API Key
+    if "zhipu_api_key" in req:
+        user.zhipu_api_key = (req["zhipu_api_key"] or "").strip()
+    if "dashscope_api_key" in req:
+        user.dashscope_api_key = (req["dashscope_api_key"] or "").strip()
+    if "doubao_api_key" in req:
+        user.doubao_api_key = (req["doubao_api_key"] or "").strip()
+    
     db.commit()
     db.refresh(plan)
-    return _build_profile(plan)
+    db.refresh(user)
+    return _build_profile(plan, user)

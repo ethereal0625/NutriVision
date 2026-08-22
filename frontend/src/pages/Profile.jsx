@@ -20,6 +20,7 @@ export default function Profile() {
   const [token] = useState(getToken())
   const [data, setData] = useState(null)
   const [form, setForm] = useState({ height_cm: '', weight_kg: '', age: '', gender: '男', activity: '轻度', water_goal: '2000' })
+  const [apiKeys, setApiKeys] = useState({ zhipu_api_key: '', dashscope_api_key: '', doubao_api_key: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -34,6 +35,11 @@ export default function Profile() {
           height_cm: p.height_cm ?? '', weight_kg: p.weight_kg ?? '',
           age: p.age ?? '', gender: p.gender || '男', activity: p.activity || '轻度',
           water_goal: p.water_goal ?? '2000',
+        })
+        setApiKeys({
+          zhipu_api_key: '',
+          dashscope_api_key: '',
+          doubao_api_key: '',
         })
       })
       .catch((e) => setError(e.message))
@@ -50,6 +56,9 @@ export default function Profile() {
         gender: form.gender,
         activity: form.activity,
         water_goal: Number(form.water_goal) || 2000,
+        zhipu_api_key: apiKeys.zhipu_api_key,
+        dashscope_api_key: apiKeys.dashscope_api_key,
+        doubao_api_key: apiKeys.doubao_api_key,
       })
       setData(p)
       setSaved(true)
@@ -140,6 +149,31 @@ export default function Profile() {
           <label className="block text-xs text-ink-500 mb-1.5">💧 每日饮水目标 (ml)</label>
           <input type="number" className={inputCls} value={form.water_goal} onChange={(e) => setForm({ ...form, water_goal: e.target.value })} placeholder="2000" />
           <div className="mt-1 text-[11px] text-ink-400">建议每天喝 1500-2500ml 水，约 8 杯</div>
+        </div>
+
+        {/* API Key */}
+        <div className="rounded-3xl bg-white border border-ink-200/70 shadow-sm p-7 mt-6">
+          <h2 className="font-bold text-ink-800 mb-1">API Key 配置</h2>
+          <p className="text-xs text-ink-400 mb-5">填写你自己的 API Key 可解锁更多模型</p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs text-ink-500 mb-1.5">智谱 AI API Key <span className="ml-2 text-[10px] text-brand-600">{data?.has_zhipu_key ? '✅' : '未配置'}</span></label>
+              <input type="password" className={inputCls} value={apiKeys.zhipu_api_key} onChange={(e) => setApiKeys({ ...apiKeys, zhipu_api_key: e.target.value })} placeholder="可选" />
+            </div>
+            <div>
+              <label className="block text-xs text-ink-500 mb-1.5">通义千问 API Key <span className="ml-2 text-[10px] text-brand-600">{data?.has_dashscope_key ? '✅' : '未配置'}</span></label>
+              <input type="password" className={inputCls} value={apiKeys.dashscope_api_key} onChange={(e) => setApiKeys({ ...apiKeys, dashscope_api_key: e.target.value })} placeholder="可选" />
+            </div>
+            <div>
+              <label className="block text-xs text-ink-500 mb-1.5">豆包 API Key <span className="ml-2 text-[10px] text-brand-600">{data?.has_doubao_key ? '✅' : '未配置'}</span></label>
+              <input type="password" className={inputCls} value={apiKeys.doubao_api_key} onChange={(e) => setApiKeys({ ...apiKeys, doubao_api_key: e.target.value })} placeholder="可选" />
+            </div>
+          </div>
+          <div className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-800">
+            <div className="font-bold mb-1">使用说明</div>
+            <div>不填写任何 Key：使用系统默认的智谱 GLM-4V-Flash（免费）</div>
+            <div>填写某个 Key：在食物分析时可以选择对应的模型</div>
+          </div>
         </div>
 
         <div className="mt-6 flex items-center gap-3">

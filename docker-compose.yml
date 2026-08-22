@@ -1,0 +1,28 @@
+﻿version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    container_name: nutrivision-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
+      - ZHIPU_API_KEY=${ZHIPU_API_KEY}
+      - DOUBAO_API_KEY=${DOUBAO_API_KEY}
+      - NUTRIVISION_SECRET=${NUTRIVISION_SECRET:-change-me-in-production}
+    volumes:
+      - backend-data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: nutrivision-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-data:

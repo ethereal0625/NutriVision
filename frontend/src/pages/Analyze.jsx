@@ -17,7 +17,8 @@ export default function Analyze() {
   const fileRef = useRef(null)
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
-  const [models, setModels] = useState(['qwen-vl-plus'])
+  const [models, setModels] = useState(['glm-4v-flash'])
+  const [availableModels, setAvailableModels] = useState([{id:'glm-4v-flash',label:'GLM-4V-Flash',free:true}])
   const [goal, setGoal] = useState('减脂')
   const [profileInfo, setProfileInfo] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -36,6 +37,7 @@ export default function Analyze() {
   useEffect(() => {
     if (!token) return
     api.getProfile().then(setProfileInfo).catch(() => {})
+    api.getModels().then(r => { if (r.models) { setAvailableModels(r.models); if (r.models.length > 0) setModels([r.models[0].id]) } }).catch(() => {})
   }, [token])
 
   const onFileChange = (e) => {
@@ -301,7 +303,7 @@ export default function Analyze() {
           <div>
             <label className="block text-sm font-semibold text-ink-700 mb-2">🧠 视觉模型（可多选）</label>
             <div className="space-y-2">
-              {MODELS.map((m) => (
+              {availableModels.map((m) => (
                 <label key={m.id} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border cursor-pointer transition ${models.includes(m.id) ? 'border-brand-500 bg-brand-50' : 'border-ink-200 hover:border-ink-300'}`}>
                   <input type="checkbox" checked={models.includes(m.id)} onChange={() => setModels(models.includes(m.id) ? models.filter(x => x !== m.id) : [...models, m.id])} className="w-4 h-4 accent-brand-600" />
                   <span className="text-sm text-ink-700">{m.label}</span>
