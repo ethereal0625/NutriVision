@@ -34,6 +34,7 @@ def generate_plan(
     model: str = "qwen-plus",
     profile: Optional[dict] = None,
     computed_calories: Optional[int] = None,
+    daily_context: Optional[Dict[str, Any]] = None,
     use_cache: bool = True,
 ) -> dict:
     """
@@ -73,10 +74,24 @@ def generate_plan(
         if computed_calories else ""
     )
 
+    daily_ctx_text = ""
+    if daily_context:
+        total = daily_context.get("total_calories", 0)
+        target = daily_context.get("target_calories", 0)
+        meals = daily_context.get("meals", [])
+        if target and total:
+            pct = round(total / target * 100)
+            daily_ctx_text = f"\n\n【当日饮食上下文】用户今天已摄入 {total} kcal（目标 {target} kcal，已占 {pct}%）。"
+            if meals:
+                meal_details = "、".join([f"{m.get('meal_type','?')}吃了{m.get('dish_name','?')}（{m.get('calories',0)}kcal）" for m in meals])
+                daily_ctx_text += f"已记录：{meal_details}。"
+            remaining = max(target - total, 0)
+            daily_ctx_text += f"剩余预算 {remaining} kcal。请结合这个背景给出改造建议，如果当前菜品会导致超标，请特别提醒。"
+
     prompt = (
         "\u4f60\u662f\u4e00\u540d\u8d44\u6df1\u8425\u517b\u5e08\u3002\u7528\u6237\u7684\u5065\u5eb7\u76ee\u6807\u662f\uff1a" + goal + "\u3002"
         + profile_text
-        + cal_text
+        + cal_text + daily_ctx_text
         + "\n\u4ee5\u4e0b\u662f\u5bf9\u4e00\u9053\u83dc\u54c1\u7684\u89c6\u89c9\u5206\u6790\u7ed3\u679c\uff1a\n"
         + json.dumps(analysis, ensure_ascii=False)
         + "\n\u8bf7\u7ed3\u5408\u8be5\u76ee\u6807\u4e0e\u7528\u6237\u6863\u6848\uff08\u5982\u6709\uff09\uff0c\u627e\u51fa\u4e0d\u5065\u5eb7\u70b9\uff0c\u7ed9\u51fa\u5177\u4f53\u53ef\u64cd\u4f5c\u7684\u6539\u9020\u65b9\u6848\uff0c"
@@ -130,6 +145,20 @@ def generate_swap_suggestions(
         List of dicts with 'original', 'swap', and 'reason' keys.
     """
     dashscope.api_key = load_api_key("dashscope")
+
+    daily_ctx_text = ""
+    if daily_context:
+        total = daily_context.get("total_calories", 0)
+        target = daily_context.get("target_calories", 0)
+        meals = daily_context.get("meals", [])
+        if target and total:
+            pct = round(total / target * 100)
+            daily_ctx_text = f"\n\n【当日饮食上下文】用户今天已摄入 {total} kcal（目标 {target} kcal，已占 {pct}%）。"
+            if meals:
+                meal_details = "、".join([f"{m.get('meal_type','?')}吃了{m.get('dish_name','?')}（{m.get('calories',0)}kcal）" for m in meals])
+                daily_ctx_text += f"已记录：{meal_details}。"
+            remaining = max(target - total, 0)
+            daily_ctx_text += f"剩余预算 {remaining} kcal。请结合这个背景给出改造建议，如果当前菜品会导致超标，请特别提醒。"
 
     prompt = (
         "\u4f60\u662f\u4e00\u540d\u8d44\u6df1\u8425\u517b\u5e08\u3002\u7528\u6237\u7684\u5065\u5eb7\u76ee\u6807\u662f\uff1a" + goal + "\u3002\n"

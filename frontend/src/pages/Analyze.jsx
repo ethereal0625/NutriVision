@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, getToken } from '../api.js'
 
@@ -27,6 +27,7 @@ export default function Analyze() {
   const [mealType, setMealType] = useState('午餐')
   const [weightEdits, setWeightEdits] = useState({})
   const [edited, setEdited] = useState(false)
+  const [compensate, setCompensate] = useState(null)
 
   useEffect(() => { if (!token) nav('/login') }, [token])
   useEffect(() => {
@@ -54,6 +55,8 @@ export default function Analyze() {
     try {
       const res = await api.analyze(fd)
       setResult(res)
+      // 获取当日补偿建议
+      api.getCompensate().then(setCompensate).catch(() => {})
       setWeightEdits({}); setEdited(false)
     } catch (e) {
       setError(e.message)
@@ -436,6 +439,113 @@ export default function Analyze() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+
+          {/* 膳食动态补偿卡片 */}
+          {compensate && compensate.today_summary && (
+            <div className="rounded-2xl bg-gradient-to-br from-brand-50 to-emerald-50 border border-brand-200/70 shadow-sm p-6">
+              <h3 className="text-lg font-bold text-ink-800 flex items-center gap-2">
+                ⚖️ 今日膳食平衡
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  compensate.status === 'over' ? 'bg-red-100 text-red-700' :
+                  compensate.status === 'slightly_over' ? 'bg-orange-100 text-orange-700' :
+                  compensate.status === 'under' ? 'bg-blue-100 text-blue-700' :
+                  'bg-brand-100 text-brand-700'
+                }`}>
+                  {compensate.status === 'over' ? '已超标' :
+                   compensate.status === 'slightly_over' ? '略超' :
+                   compensate.status === 'under' ? '摄入不足' : '进行中'}
+                </span>
+              </h3>
+
+              {/* 进度条 */}
+              <div className="mt-4">
+                <div className="flex justify-between text-sm text-ink-600 mb-1">
+                  <span>已摄入 <b>{compensate.today_summary.total_calories}</b> kcal</span>
+                  <span>目标 <b>{compensate.today_summary.target_calories}</b> kcal</span>
+                </div>
+                <div className="h-3 bg-ink-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      compensate.ratio_percent > 100 ? 'bg-red-500' :
+                      compensate.ratio_percent > 80 ? 'bg-orange-400' :
+                      'bg-brand-500'
+                    }`}
+                    style={{ width: `${Math.min(compensate.ratio_percent, 100)}%` }}
+                  />
+                </div>
+                <div className="mt-1 text-xs text-ink-500 text-right">
+                  剩余 <b className="text-brand-700">{compensate.remaining_budget?.calories || 0}</b> kcal
+                </div>
+              </div>
+
+              {/* 宏量营养素剩余 */}
+              {compensate.remaining_budget && (
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <div className="text-center p-2 bg-white/60 rounded-lg">
+                    <div className="text-xs text-ink-500">蛋白质</div>
+                    <div className="text-sm font-bold text-blue-600">{compensate.remaining_budget.protein || 0}g</div>
+                  </div>
+                  <div className="text-center p-2 bg-white/60 rounded-lg">
+                    <div className="text-xs text-ink-500">碳水</div>
+                    <div className="text-sm font-bold text-amber-600">{compensate.remaining_budget.carbs || 0}g</div>
+                  </div>
+                  <div className="text-center p-2 bg-white/60 rounded-lg">
+                    <div className="text-xs text-ink-500">脂肪</div>
+                    <div className="text-sm font-bold text-rose-600">{compensate.remaining_budget.fat || 0}g</div>
+                  </div>
+                </div>
+              )}
+
+              {/* 下一餐建议 */}
+              {compensate.next_meal_advice && compensate.next_meal_advice.direction && (
+                <div className="mt-4 p-4 bg-white rounded-xl border border-brand-100">
+                  <div className="text-sm font-semibold text-brand-700 mb-2">
+                    🍽️ 下一餐建议：{compensate.next_meal_advice.direction}
+                  </div>
+                  <div className="text-xs text-ink-600 mb-2">{compensate.next_meal_advice.reason}</div>
+                  {compensate.next_meal_advice.suggested_dishes?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {compensate.next_meal_advice.suggested_dishes.map((d, i) => (
+                        <span key={i} className="text-xs px-2 py-1 bg-brand-50 text-brand-700 rounded-full">✅ {d}</span>
+                      ))}
+                    </div>
+                  )}
+                  {compensate.next_meal_advice.avoid?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {compensate.next_meal_advice.avoid.map((a, i) => (
+                        <span key={i} className="text-xs px-2 py-1 bg-red-50 text-red-600 rounded-full">❌ {a}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 今日展望 */}
+              {compensate.today_outlook && (
+                <div className="mt-3 text-sm text-ink-700 bg-white/60 rounded-lg p-3">
+                  <span className="font-medium">📊 今日展望：</span>
+                  {compensate.today_outlook.note}
+                </div>
+              )}
+
+              {/* 明天建议 */}
+              {compensate.tomorrow_advice?.needed && (
+                <div className="mt-3 text-sm text-ink-700 bg-amber-50 rounded-lg p-3 border border-amber-200">
+                  <span className="font-medium">📅 明天调整：</span>
+                  {compensate.tomorrow_advice.note}
+                </div>
+              )}
+
+              {/* 本周趋势 */}
+              {compensate.weekly_insight && (
+                <div className="mt-3 text-sm text-ink-700 bg-white/60 rounded-lg p-3">
+                  <span className="font-medium">📈 本周趋势：</span>
+                  {compensate.weekly_insight.note}
+                </div>
+              )}
             </div>
           )}
 

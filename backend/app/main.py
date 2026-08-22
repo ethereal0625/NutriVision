@@ -1,4 +1,4 @@
-"""NutriVision FastAPI 后端入口"""
+﻿"""NutriVision FastAPI 后端入口"""
 import sys
 from pathlib import Path
 
@@ -9,7 +9,7 @@ from sqlalchemy import inspect, text
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from .database import Base, SessionLocal, engine
-from .routers import analyze, auth, history, plan, products, profile, report, tips
+from .routers import analyze, auth, compensate, history, plan, products, profile, report, tips
 
 Base.metadata.create_all(bind=engine)
 
@@ -60,6 +60,7 @@ app.include_router(plan.router)
 app.include_router(products.router)
 app.include_router(profile.router)
 app.include_router(report.router)
+app.include_router(compensate.router)
 app.include_router(tips.router)
 
 

@@ -1,4 +1,4 @@
-"""食物分析路由：多模型视觉分析 + 营养核算 + 改造方案"""
+﻿"""食物分析路由：多模型视觉分析 + 营养核算 + 改造方案"""
 import json
 import sys
 import tempfile
@@ -18,7 +18,7 @@ from modules.vision_analyzer import analyze_with_check
 
 from ..database import get_db
 from ..routers.auth import get_current_user
-from ..models import FoodProduct, User, UserPlan
+from ..models import FoodProduct, HistoryItem, User, UserPlan
 
 router = APIRouter(prefix="/api", tags=["analyze"])
 

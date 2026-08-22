@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 
 export default function Footer() {
   return (
-    <footer className="mt-24 border-t border-ink-200 bg-white/60">
+    <footer className="hidden md:block mt-24 border-t border-ink-200 bg-white/60">
       <div className="mx-auto max-w-6xl px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink-500">
         <div className="flex items-center gap-2">
           <span className="text-xl">🥗</span>

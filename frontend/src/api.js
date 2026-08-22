@@ -1,4 +1,4 @@
-// API 客户端
+﻿// API 客户端
 const TOKEN_KEY = 'nutrivision_token'
 const USER_KEY = 'nutrivision_user'
 
@@ -77,4 +77,5 @@ export const api = {
   updateProfile: (profile) => request('/profile', { method: 'PUT', body: profile }),
   getTips: () => request('/tips'),
   getReport: (days) => requestText(`/report?days=${days || 7}`),
+  getCompensate: (date) => request(`/compensate?date_str=${date || ''}`),
 }
