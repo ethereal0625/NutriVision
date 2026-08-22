@@ -29,6 +29,8 @@ export default function Analyze() {
   const [weightEdits, setWeightEdits] = useState({})
   const [edited, setEdited] = useState(false)
   const [compensate, setCompensate] = useState(null)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareImage, setShareImage] = useState('')
 
   useEffect(() => { if (!token) nav('/login') }, [token])
   useEffect(() => {
@@ -104,6 +106,108 @@ export default function Analyze() {
   const modelList = result?.models || []
   const primary = result?.results?.[result.primary_model] || {}
   const plan = result?.plan || {}
+
+  const drawRoundRect = (ctx, x, y, w, h, r) => {
+    ctx.beginPath()
+    ctx.moveTo(x + r, y)
+    ctx.arcTo(x + w, y, x + w, y + h, r)
+    ctx.arcTo(x + w, y + h, x, y + h, r)
+    ctx.arcTo(x, y + h, x, y, r)
+    ctx.arcTo(x, y, x + w, y, r)
+    ctx.closePath()
+  }
+
+  const generateShareCard = () => {
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = 640
+      canvas.height = 960
+      const ctx = canvas.getContext('2d')
+      const score = result.nutrition_score || {}
+      const before = plan.before_after?.before || {}
+      const after = plan.before_after?.after || {}
+      const dishName = primary.dish_name || '未知食物'
+      const cal = result.calories || 0
+      const savedCal = before.calories && after.calories ? before.calories - after.calories : 0
+
+      // 背景渐变
+      const grad = ctx.createLinearGradient(0, 0, 0, 960)
+      grad.addColorStop(0, '#2e8b57')
+      grad.addColorStop(1, '#14532d')
+      ctx.fillStyle = grad
+      ctx.fillRect(0, 0, 640, 960)
+
+      // 顶部标题
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 34px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('AI 健康饮食改造师', 320, 70)
+      ctx.font = '18px sans-serif'
+      ctx.fillStyle = 'rgba(255,255,255,0.85)'
+      ctx.fillText('NutriVision', 320, 102)
+
+      // 白色主体
+      ctx.fillStyle = '#ffffff'
+      drawRoundRect(ctx, 32, 140, 576, 768, 26)
+      ctx.fill()
+
+      // 菜品名
+      ctx.fillStyle = '#1f2937'
+      ctx.font = 'bold 30px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText(dishName, 320, 210)
+
+      // 热量
+      ctx.fillStyle = '#2e8b57'
+      ctx.font = 'bold 62px sans-serif'
+      ctx.fillText(cal + ' kcal', 320, 300)
+
+      // 营养评分
+      ctx.fillStyle = '#6b7280'
+      ctx.font = '16px sans-serif'
+      ctx.fillText('营养评分', 320, 350)
+      const gradeColor = score.color === 'green' ? '#16a34a' : score.color === 'blue' ? '#2563eb' : score.color === 'orange' ? '#f59e0b' : '#dc2626'
+      ctx.fillStyle = gradeColor
+      ctx.font = 'bold 46px sans-serif'
+      ctx.fillText((score.grade || '?') + ' · ' + (score.label || ''), 320, 410)
+
+      // 分割线
+      ctx.strokeStyle = '#e5e7eb'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(80, 460)
+      ctx.lineTo(560, 460)
+      ctx.stroke()
+
+      // 改造前后
+      if (before.name || after.name) {
+        ctx.font = 'bold 22px sans-serif'
+        ctx.fillStyle = '#1f2937'
+        ctx.fillText('健康改造', 320, 510)
+        ctx.font = '18px sans-serif'
+        ctx.fillStyle = '#dc2626'
+        ctx.fillText('改造前：' + (before.name || '原菜品') + '  ' + (before.calories || '?') + ' kcal', 320, 560)
+        ctx.fillStyle = '#16a34a'
+        ctx.fillText('改造后：' + (after.name || plan.healthy_dish_name || '健康版') + '  ' + (after.calories || '?') + ' kcal', 320, 605)
+        if (savedCal > 0) {
+          ctx.fillStyle = '#2e8b57'
+          ctx.font = 'bold 22px sans-serif'
+          ctx.fillText('每餐减少 ' + savedCal + ' kcal', 320, 660)
+        }
+      }
+
+      // 底部品牌
+      ctx.fillStyle = '#9ca3af'
+      ctx.font = '15px sans-serif'
+      ctx.fillText('AI 识别 · 营养数据库核算 · 个性化改造', 320, 860)
+
+      setShareImage(canvas.toDataURL('image/png'))
+      setShareOpen(true)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const maxCal = Math.max(1, ...(result ? Object.values(result.calories_by_model || {}) : [1]))
 
   // ===== 克重编辑：用户可修改 AI 估算的食材克重，热量与营养结构即时重算 =====
@@ -682,6 +786,41 @@ export default function Analyze() {
                   {compensate.weekly_insight.note}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* 分享卡片 */}
+          {result && result.is_food && (
+            <div className="rounded-2xl bg-white border border-ink-200/70 shadow-sm p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-ink-800">📤 分享分析结果</h3>
+                  <p className="mt-1 text-xs text-ink-400">生成一张精美的健康卡片，分享给朋友</p>
+                </div>
+                <button onClick={generateShareCard}
+                  className="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-brand-600 to-emerald-500 hover:shadow-lg hover:shadow-brand-500/30 transition-all">
+                  🖼️ 生成分享卡
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 分享卡预览弹窗 */}
+          {shareOpen && shareImage && (
+            <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4" onClick={() => setShareOpen(false)}>
+              <div className="bg-white rounded-2xl p-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+                <img src={shareImage} alt="分享卡片" className="w-full rounded-xl" />
+                <div className="mt-4 flex gap-2">
+                  <a href={shareImage} download="nutrivision-share.png"
+                    className="flex-1 text-center px-4 py-3 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-500 transition">
+                    💾 保存图片
+                  </a>
+                  <button onClick={() => setShareOpen(false)}
+                    className="px-4 py-3 rounded-xl font-semibold text-ink-600 bg-ink-100 hover:bg-ink-200 transition">
+                    关闭
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
