@@ -11,9 +11,6 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import dashscope
-import requests
-from dashscope import MultiModalConversation
 
 from config import API_ENDPOINTS, CACHE_FILES, LIMITS, MODELS
 from modules.common import load_api_key, parse_json, retry, load_json_cache, save_json_cache
@@ -72,6 +69,8 @@ def _img_b64(image_path: str) -> str:
 # -- DashScope (Qwen-VL) via SDK -------------------------------------------
 
 def _dashscope_call(messages: list, model: str) -> dict:
+    import dashscope
+    from dashscope import MultiModalConversation
     """Call a DashScope vision model via the official SDK."""
     dashscope.api_key = load_api_key("dashscope")
 
@@ -119,6 +118,7 @@ def _http_vision_call(
     model: str,
     temperature: float = 0.1,
 ) -> dict:
+    import requests
     """
     Call a vision model via its HTTP API endpoint.
     Works for both Zhipu (GLM-4V) and Doubao since they share the same

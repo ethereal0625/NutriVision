@@ -9,8 +9,6 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-import dashscope
-from dashscope import Generation
 
 from modules.common import load_api_key, parse_json, retry
 
@@ -26,6 +24,8 @@ def generate_compensation_advice(
     weekly_trend: Optional[Dict[str, Any]] = None,
     model: str = "qwen-plus",
 ) -> Dict[str, Any]:
+    import dashscope
+    from dashscope import Generation
     """生成膳食补偿建议。"""
     dashscope.api_key = load_api_key("dashscope")
 

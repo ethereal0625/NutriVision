@@ -9,7 +9,6 @@ import logging
 from functools import lru_cache
 from pathlib import Path
 
-from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +43,7 @@ def _get_pipe():
 
 
 def _canny_edges(image: Image.Image, low: int = 100, high: int = 200) -> Image.Image:
+    from PIL import Image
     import cv2
     import numpy as np
 
@@ -63,6 +63,7 @@ def generate_with_composition(
     controlnet_conditioning_scale: float = 0.85,
     seed: int = -1,
 ) -> str:
+    from PIL import Image
     """保持原图构图地生成"健康版"菜品图。"""
     import torch
 

@@ -10,8 +10,6 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-import dashscope
-from dashscope import Generation
 
 from config import CACHE_FILES, HEALTH_GOALS, LIMITS
 from modules.common import load_api_key, load_json_cache, parse_json, retry, save_json_cache
@@ -37,6 +35,8 @@ def generate_plan(
     daily_context: Optional[Dict[str, Any]] = None,
     use_cache: bool = True,
 ) -> dict:
+    import dashscope
+    from dashscope import Generation
     """
     Generate a health modification plan for a dish.
 
@@ -131,6 +131,8 @@ def generate_swap_suggestions(
     goal: str,
     model: str = "qwen-plus",
 ) -> List[Dict[str, str]]:
+    import dashscope
+    from dashscope import Generation
     """
     Generate ingredient swap suggestions for a dish.
 

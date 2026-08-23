@@ -5,9 +5,6 @@ image_generator.py - Text-to-image generation via DashScope wanx-v1.
 import logging
 from pathlib import Path
 
-import dashscope
-import requests
-from dashscope import ImageSynthesis
 
 from config import LIMITS
 from modules.common import load_api_key
@@ -22,6 +19,9 @@ def generate_image(
     model: str = "wanx-v1",
     timeout: int = None,
 ) -> str:
+    import dashscope
+    from dashscope import ImageSynthesis
+    import requests
     """
     Generate an image from a text prompt using DashScope wanx model.
 
