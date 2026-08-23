@@ -2,23 +2,26 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# System deps for any C-extension wheels
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python deps
-COPY requirements.txt .
+# Install Python deps first (better layer cache). Use the BACKEND requirements,
+# which has fastapi/uvicorn/sqlalchemy -- the root requirements.txt does not.
+COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code
-COPY . .
+# Copy backend app, shared modules, and root config.py (build context = repo root)
+COPY backend/ ./backend/
+COPY modules/ ./modules/
+COPY config.py ./config.py
 
-# Copy shared modules from parent directory (build context is root)
-COPY modules ./modules
-COPY config.py .
+# Run from backend/ so uvicorn app.main:app resolves the app package
+WORKDIR /app/backend
+RUN mkdir -p /app/backend/data
 
-# Environment
 ENV PYTHONUNBUFFERED=1
-ENV NUTRIVISION_DB=sqlite:///data/nutrivision.db
+# Absolute SQLite path (four slashes = absolute) inside the container
+ENV NUTRIVISION_DB=sqlite:////app/backend/data/nutrivision.db
 
 EXPOSE 8000
 

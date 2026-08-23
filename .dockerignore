@@ -1,0 +1,19 @@
+# Build context hygiene -- keeps images small and avoids copying local secrets/db
+.git
+.github
+**/__pycache__/
+**/*.pyc
+node_modules
+frontend/node_modules
+frontend/dist
+backend/data/*.db
+backend/uvicorn_*.log
+streamlit_*.log
+*.log
+output/
+pe_results/
+preview/
+.app_static/
+.env
+.env.*
+*.png
