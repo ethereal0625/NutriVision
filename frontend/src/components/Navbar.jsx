@@ -22,10 +22,8 @@ export default function Navbar() {
   const tabs = [
     { to: '/', icon: '🏠', label: '首页', end: true },
     { to: '/analyze', icon: '📸', label: '分析', end: false },
-    { to: '/plan', icon: '📋', label: '计划', end: false },
+    { to: '/water', icon: '⏰', label: '提醒', end: false },
     { to: '/history', icon: '📅', label: '记录', end: false },
-    { to: '/water', icon: '💧', label: '饮水', end: false },
-    { to: '/badges', icon: '🏆', label: '成就', end: false },
     { to: '/profile', icon: '👤', label: '我的', end: false },
   ]
 

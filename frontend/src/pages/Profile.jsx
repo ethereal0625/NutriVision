@@ -2,6 +2,8 @@
 import { useNavigate } from 'react-router-dom'
 import { api, getToken } from '../api.js'
 
+import { Link } from 'react-router-dom'
+
 const ACTIVITIES = [
   { id: '久坐', label: '久坐', desc: '办公/学习为主，很少运动' },
   { id: '轻度', label: '轻度', desc: '每周运动 1-3 次' },
@@ -14,6 +16,14 @@ const BMI_META = {
   偏胖: { color: 'text-amber-600 bg-amber-50', tip: '轻微超重，建议适度控制热量并增加运动' },
   肥胖: { color: 'text-red-500 bg-red-50', tip: '达到肥胖范围，建议系统规划减脂计划' },
 }
+
+const MORE = [
+  { to: '/plan', icon: '🎯', label: '每日计划', desc: '目标与安排' },
+  { to: '/water', icon: '⏰', label: '提醒', desc: '喝水 / 吃药' },
+  { to: '/badges', icon: '🏆', label: '成就', desc: '打卡里程碑' },
+  { to: '/tips', icon: '💡', label: '健康科普', desc: '营养小知识' },
+  { to: '/about', icon: 'ℹ️', label: '关于', desc: '项目说明' },
+]
 
 export default function Profile() {
   const nav = useNavigate()
@@ -104,6 +114,17 @@ export default function Profile() {
       {data?.bmi_category && (
         <div className={`mb-6 px-5 py-3.5 rounded-2xl text-sm ${meta.color}`}>💡 {meta.tip}</div>
       )}
+
+      {/* 更多功能入口 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        {MORE.map((m) => (
+          <Link key={m.to} to={m.to} className="card-soft p-4 text-center hover:-translate-y-0.5 hover:shadow-md transition-all">
+            <div className="text-2xl">{m.icon}</div>
+            <div className="mt-1.5 text-sm font-bold text-ink-800">{m.label}</div>
+            <div className="mt-0.5 text-[11px] text-ink-400">{m.desc}</div>
+          </Link>
+        ))}
+      </div>
 
       {/* 编辑表单 */}
       <div className="rounded-3xl bg-white border border-ink-200/70 shadow-sm p-7">

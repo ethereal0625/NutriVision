@@ -158,3 +158,20 @@ class WaterDayOut(BaseModel):
     goal: int
     percent: float
     logs: List[WaterLogOut]
+
+
+class ReminderCreate(BaseModel):
+    title: str = "喝水"
+    time: str = "09:00"
+    enabled: bool = True
+
+
+class ReminderOut(BaseModel):
+    id: int
+    title: str
+    time: str
+    enabled: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

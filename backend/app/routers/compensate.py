@@ -10,6 +10,7 @@ from ..database import get_db
 from ..models import HistoryItem, User, UserPlan
 from ..routers.auth import get_current_user
 from ..routers.plan import _get_or_create_plan, resolve_target, default_macro_goals, parse_macros
+from modules.llm_client import pick_text_model
 
 try:
     from modules.meal_compensator import generate_compensation_advice
@@ -115,6 +116,7 @@ def get_compensation(
         macro_targets=macro_targets,
         profile=profile,
         weekly_trend=weekly_trend,
+        model=pick_text_model(bool(user.dashscope_api_key)),
     )
 
     # 附加当日汇总信息

@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 
-from modules.common import load_api_key, parse_json, retry
+from modules.llm_client import chat_completion
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,7 @@ def generate_compensation_advice(
     weekly_trend: Optional[Dict[str, Any]] = None,
     model: str = "qwen-plus",
 ) -> Dict[str, Any]:
-    import dashscope
-    from dashscope import Generation
     """生成膳食补偿建议。"""
-    dashscope.api_key = load_api_key("dashscope")
 
     # 计算剩余预算
     total_cal = today_intake.get("total_calories", 0)
@@ -138,18 +135,8 @@ def generate_compensation_advice(
         "\n}"
     )
 
-    def call():
-        resp = Generation.call(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            result_format="message",
-        )
-        if resp.status_code != 200:
-            raise RuntimeError(f"status={resp.status_code} code={resp.code} msg={resp.message}")
-        return parse_json(resp.output.choices[0].message.content)
-
     try:
-        advice = retry(call)
+        advice = chat_completion(prompt, model)
     except Exception as e:
         logger.error("Compensation advice generation failed: %s", e)
         advice = {}

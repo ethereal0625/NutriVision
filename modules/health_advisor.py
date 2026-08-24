@@ -11,8 +11,9 @@ import logging
 from typing import Any, Dict, List, Optional
 
 
-from config import CACHE_FILES, HEALTH_GOALS, LIMITS
-from modules.common import load_api_key, load_json_cache, parse_json, retry, save_json_cache
+from config import CACHE_FILES, HEALTH_GOALS
+from modules.common import load_json_cache, save_json_cache
+from modules.llm_client import chat_completion
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +36,6 @@ def generate_plan(
     daily_context: Optional[Dict[str, Any]] = None,
     use_cache: bool = True,
 ) -> dict:
-    import dashscope
-    from dashscope import Generation
     """
     Generate a health modification plan for a dish.
 
@@ -51,7 +50,6 @@ def generate_plan(
     Returns:
         Dict with risk_points, modification_plan, healthy_dish_name, etc.
     """
-    dashscope.api_key = load_api_key("dashscope")
     cache_file = CACHE_FILES["plan"]
 
     if use_cache:
@@ -106,17 +104,7 @@ def generate_plan(
         "}"
     )
 
-    def call():
-        resp = Generation.call(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            result_format="message",
-        )
-        if resp.status_code != 200:
-            raise RuntimeError(f"status={resp.status_code} code={resp.code} msg={resp.message}")
-        return parse_json(resp.output.choices[0].message.content)
-
-    result = retry(call)
+    result = chat_completion(prompt, model)
 
     if use_cache:
         cache = load_json_cache(cache_file)
@@ -131,8 +119,6 @@ def generate_swap_suggestions(
     goal: str,
     model: str = "qwen-plus",
 ) -> List[Dict[str, str]]:
-    import dashscope
-    from dashscope import Generation
     """
     Generate ingredient swap suggestions for a dish.
 
@@ -146,22 +132,6 @@ def generate_swap_suggestions(
     Returns:
         List of dicts with 'original', 'swap', and 'reason' keys.
     """
-    dashscope.api_key = load_api_key("dashscope")
-
-    daily_ctx_text = ""
-    if daily_context:
-        total = daily_context.get("total_calories", 0)
-        target = daily_context.get("target_calories", 0)
-        meals = daily_context.get("meals", [])
-        if target and total:
-            pct = round(total / target * 100)
-            daily_ctx_text = f"\n\n【当日饮食上下文】用户今天已摄入 {total} kcal（目标 {target} kcal，已占 {pct}%）。"
-            if meals:
-                meal_details = "、".join([f"{m.get('meal_type','?')}吃了{m.get('dish_name','?')}（{m.get('calories',0)}kcal）" for m in meals])
-                daily_ctx_text += f"已记录：{meal_details}。"
-            remaining = max(target - total, 0)
-            daily_ctx_text += f"剩余预算 {remaining} kcal。请结合这个背景给出改造建议，如果当前菜品会导致超标，请特别提醒。"
-
     prompt = (
         "\u4f60\u662f\u4e00\u540d\u8d44\u6df1\u8425\u517b\u5e08\u3002\u7528\u6237\u7684\u5065\u5eb7\u76ee\u6807\u662f\uff1a" + goal + "\u3002\n"
         "\u4ee5\u4e0b\u662f\u5bf9\u4e00\u9053\u83dc\u54c1\u7684\u5206\u6790\u7ed3\u679c\uff1a\n"
@@ -171,17 +141,7 @@ def generate_swap_suggestions(
         "\u5982\u679c\u67d0\u4e9b\u98df\u6750\u5df2\u7ecf\u8db3\u591f\u5065\u5eb7\uff0c\u53ef\u4ee5\u8df3\u8fc7\u3002\u53ea\u8f93\u51fa\u6709\u66ff\u6362\u4ef7\u503c\u7684\u98df\u6750\uff0c\u6700\u591a8\u6761\u3002"
     )
 
-    def call():
-        resp = Generation.call(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            result_format="message",
-        )
-        if resp.status_code != 200:
-            raise RuntimeError(f"status={resp.status_code} code={resp.code} msg={resp.message}")
-        return parse_json(resp.output.choices[0].message.content)
-
-    return retry(call)
+    return chat_completion(prompt, model)
 
 
 # Re-export for backward compatibility

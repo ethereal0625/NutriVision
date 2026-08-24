@@ -25,6 +25,8 @@ MODELS: Dict[str, Dict[str, Any]] = {
     "qwen-vl-plus":    {"provider": "dashscope", "type": "vision"},
     "qwen-vl-max":     {"provider": "dashscope", "type": "vision"},
     "glm-4v":          {"provider": "zhipu",     "type": "vision"},
+    "glm-4v-flash":    {"provider": "zhipu",     "type": "vision"},
+    "glm-4-flash":     {"provider": "zhipu",     "type": "text"},
     "doubao-seed-2.0": {"provider": "doubao", "type": "vision", "endpoint_id": "ep-20260815154546-cz6bs"},
     "qwen-plus":       {"provider": "dashscope", "type": "text"},
     "wanx-v1":         {"provider": "dashscope", "type": "image_gen"},

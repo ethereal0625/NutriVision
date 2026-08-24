@@ -80,4 +80,12 @@ export const api = {
   getReport: (days) => requestText(`/report?days=${days || 7}`),
   getModels: () => request("/models"),
   getCompensate: (date) => request(`/compensate?date_str=${date || ''}`),
+  getWaterToday: (date) => request(`/water/today${date ? `?date=${date}` : ''}`),
+  getWaterCalendar: (year, month) => request(`/water/calendar?year=${year || ''}&month=${month || ''}`),
+  logWater: (amount, note) => request('/water/log', { method: 'POST', body: { amount, note: note || '' } }),
+  deleteWaterLog: (id) => request(`/water/${id}`, { method: 'DELETE' }),
+  getReminders: () => request('/reminders'),
+  addReminder: (title, time) => request('/reminders', { method: 'POST', body: { title, time } }),
+  updateReminder: (id, patch) => request(`/reminders/${id}`, { method: 'PUT', body: patch }),
+  deleteReminder: (id) => request(`/reminders/${id}`, { method: 'DELETE' }),
 }

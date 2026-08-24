@@ -9,7 +9,7 @@ from sqlalchemy import inspect, text
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from .database import Base, SessionLocal, engine
-from .routers import analyze, auth, badges, compensate, history, plan, products, profile, report, tips, water
+from .routers import analyze, auth, badges, compensate, history, plan, products, profile, reminders, report, tips, water
 
 Base.metadata.create_all(bind=engine)
 
@@ -73,6 +73,7 @@ app.include_router(report.router)
 app.include_router(compensate.router)
 app.include_router(tips.router)
 app.include_router(water.router)
+app.include_router(reminders.router)
 app.include_router(badges.router)
 
 

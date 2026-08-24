@@ -66,6 +66,22 @@ def _img_b64(image_path: str) -> str:
         return base64.b64encode(f.read()).decode("utf-8")
 
 
+def _optimized_b64(image_path: str, max_side: int = 1280, quality: int = 85) -> str:
+    """Downscale to a JPEG and base64 it; vision APIs reject oversized images."""
+    try:
+        import io
+        from PIL import Image
+        img = Image.open(image_path)
+        img = img.convert("RGB")
+        if max(img.size) > max_side:
+            img.thumbnail((max_side, max_side))
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=quality)
+        return base64.b64encode(buf.getvalue()).decode("utf-8")
+    except Exception:
+        return _img_b64(image_path)
+
+
 # -- DashScope (Qwen-VL) via SDK -------------------------------------------
 
 def _dashscope_call(messages: list, model: str) -> dict:
@@ -154,7 +170,7 @@ def _http_vision_call(
 
 def _zhipu_messages(image_path: str, prompt: str, system: bool = False) -> list:
     """Build message payload for Zhipu GLM-4V (uses raw base64 without data URI)."""
-    b64 = _img_b64(image_path)
+    b64 = _optimized_b64(image_path)
     if system:
         return [
             {"role": "system", "content": [{"type": "text", "text": SYSTEM_PROMPT}]},
@@ -173,7 +189,7 @@ def _zhipu_messages(image_path: str, prompt: str, system: bool = False) -> list:
 
 def _doubao_messages(image_path: str, prompt: str, system: bool = False) -> list:
     """Build message payload for Doubao (uses data: URI for base64 images)."""
-    b64 = f"data:image/jpeg;base64,{_img_b64(image_path)}"
+    b64 = f"data:image/jpeg;base64,{_optimized_b64(image_path)}"
     if system:
         return [
             {"role": "system", "content": [{"type": "text", "text": SYSTEM_PROMPT}]},

@@ -17,6 +17,7 @@ from modules.health_advisor import generate_plan, generate_swap_suggestions
 from modules.nutrition_db import bmi, bmi_category, compute_calories, compute_macros, lookup_macros, tdee
 from modules.nutrition_score import calculate_nutrition_score
 from modules.vision_analyzer import analyze_with_check
+from modules.llm_client import pick_text_model
 
 from ..database import get_db
 from ..routers.auth import get_current_user
@@ -32,11 +33,11 @@ def _setup_user_api_keys(user):
     if user.doubao_api_key: os.environ["DOUBAO_API_KEY"] = user.doubao_api_key
 
 def _get_available_models(user):
-    ms = [{"id": "glm-4v-flash", "label": "æºè°± GLM-4V-Flash (åè´¹)", "free": True}]
-    if user.zhipu_api_key: ms.append({"id": "glm-4v", "label": "æºè°± GLM-4V", "free": False})
-    if user.dashscope_api_key: ms.append({"id": "qwen-vl-plus", "label": "éä¹åé® Qwen-VL-Plus", "free": False})
-    if user.dashscope_api_key: ms.append({"id": "qwen-vl-max", "label": "éä¹åé® Qwen-VL-Max", "free": False})
-    if user.doubao_api_key: ms.append({"id": "doubao-seed-2.0", "label": "è±å Seed", "free": False})
+    ms = [{"id": "glm-4v-flash", "label": "智谱 GLM-4V-Flash（免费）", "free": True}]
+    if user.zhipu_api_key: ms.append({"id": "glm-4v", "label": "智谱 GLM-4V", "free": False})
+    if user.dashscope_api_key: ms.append({"id": "qwen-vl-plus", "label": "通义千问 Qwen-VL-Plus", "free": False})
+    if user.dashscope_api_key: ms.append({"id": "qwen-vl-max", "label": "通义千问 Qwen-VL-Max", "free": False})
+    if user.doubao_api_key: ms.append({"id": "doubao-seed-2.0", "label": "豆包 Seed", "free": False})
     return ms
 VALID_GOALS = ["减脂", "控糖", "增肌", "均衡饮食"]
 
@@ -73,7 +74,10 @@ def analyze(
         except Exception:
             profile_data = {}
     _setup_user_api_keys(user)
-    model_list = [m.strip() for m in models.split(",") if m.strip()] or DEFAULT_MODELS
+    allowed_ids = {m["id"] for m in _get_available_models(user)}
+    fallback = next(iter(allowed_ids), "glm-4v-flash")
+    model_list = [m.strip() for m in models.split(",") if m.strip() and m.strip() in allowed_ids] or [fallback]
+    text_model = pick_text_model(bool(user.dashscope_api_key))
 
     suffix = Path(file.filename or "food.jpg").suffix or ".jpg"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -127,11 +131,11 @@ def analyze(
             }
 
         # Module B：改造方案
-        plan = generate_plan(primary, goal, profile=profile_info, computed_calories=primary_cc)
+        plan = generate_plan(primary, goal, model=text_model, profile=profile_info, computed_calories=primary_cc)
 
         # 食材替换建议
         try:
-            swaps = generate_swap_suggestions(primary, goal)
+            swaps = generate_swap_suggestions(primary, goal, model=text_model)
         except Exception:
             swaps = []
 

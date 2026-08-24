@@ -22,6 +22,7 @@ class User(Base):
     history = relationship("HistoryItem", back_populates="user", cascade="all, delete-orphan")
     plan = relationship("UserPlan", back_populates="user", cascade="all, delete-orphan", uselist=False)
     water_logs = relationship("WaterLog", back_populates="user", cascade="all, delete-orphan")
+    reminders = relationship("Reminder", back_populates="user", cascade="all, delete-orphan")
 
 
 class UserPlan(Base):
@@ -83,6 +84,20 @@ class WaterLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="water_logs")
+
+
+class Reminder(Base):
+    """用户自定义提醒（喝水 / 吃药等）"""
+    __tablename__ = "reminders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String(50), default="喝水")
+    time = Column(String(5), default="09:00")  # HH:MM
+    enabled = Column(Integer, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="reminders")
 
 
 class FoodProduct(Base):
