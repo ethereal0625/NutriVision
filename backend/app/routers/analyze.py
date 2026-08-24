@@ -41,6 +41,27 @@ def _get_available_models(user):
     return ms
 VALID_GOALS = ["减脂", "控糖", "增肌", "均衡饮食"]
 
+HIGH_FAT_EXTRAS = ("食用油", "黄油", "奶油", "奶酪", "芝士", "沙拉酱", "蛋黄酱", "花生酱", "芝麻酱", "猪油", "酥油")
+
+def _sanitize_weights(analysis: dict) -> dict:
+    """Clamp model-estimated weights to plausible ranges so the library calc stays sane."""
+    if not isinstance(analysis, dict):
+        return analysis
+    items = analysis.get("ingredients")
+    if not isinstance(items, list):
+        return analysis
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        name = str(it.get("name", ""))
+        try:
+            w = float(it.get("weight_g") or 0)
+        except Exception:
+            w = 0
+        cap = 50 if any(k in name for k in HIGH_FAT_EXTRAS) else 600
+        it["weight_g"] = int(round(max(3, min(w, cap))))
+    return analysis
+
 
 @router.get("/models")
 def get_models(db=Depends(get_db), user: User = Depends(get_current_user)):
@@ -102,7 +123,7 @@ def analyze(
         breakdown_by_model = {}
         unlisted_by_model = {}
         for m, r in food_results.items():
-            analysis = r["analysis"] if isinstance(r["analysis"], dict) else {}
+            analysis = _sanitize_weights(r["analysis"]) if isinstance(r["analysis"], dict) else {}
             try:
                 cc, bd, ul = compute_calories(analysis)
             except Exception:
@@ -119,6 +140,26 @@ def analyze(
         primary_cc = computed_by_model[primary_model]
         primary_breakdown = breakdown_by_model[primary_model]
         primary_unlisted = unlisted_by_model[primary_model]
+
+        # 热量调和：营养库核算与 AI 估算差距过大时取中值，避免单一来源过度偏离
+        model_kcal = primary.get("model_calories")
+        try:
+            model_kcal = int(model_kcal)
+        except (TypeError, ValueError):
+            model_kcal = None
+        if model_kcal and model_kcal > 0 and primary_cc > 0:
+            gap = abs(primary_cc - model_kcal) / max(primary_cc, model_kcal)
+            if gap > 0.35:
+                recommended_kcal = int(round((primary_cc + model_kcal) / 2))
+                calorie_confidence = "low"
+            else:
+                recommended_kcal = primary_cc
+                calorie_confidence = "medium"
+            calorie_gap_pct = int(round(gap * 100))
+        else:
+            recommended_kcal = primary_cc
+            calorie_confidence = "unknown"
+            calorie_gap_pct = 0
 
         # 用户档案
         profile_info = None
@@ -183,6 +224,11 @@ def analyze(
             "breakdown_by_model": breakdown_by_model,
             "unlisted_by_model": unlisted_by_model,
             "calories": primary_cc,
+            "library_calories": primary_cc,
+            "model_calories": model_kcal,
+            "recommended_calories": recommended_kcal,
+            "calorie_confidence": calorie_confidence,
+            "calorie_gap_pct": calorie_gap_pct,
             "macros": macros,
             "macros_details": macros_details,
             "nutrition_score": nutrition_score,

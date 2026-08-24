@@ -26,24 +26,25 @@ SYSTEM_PROMPT = (
 )
 
 USER_PROMPT = (
-    "\u8bf7\u8f93\u51fa\u4ee5\u4e0b JSON \u683c\u5f0f\uff1a\n"
-    "{\n"
-    '  "dish_name": "\u83dc\u540d\uff08\u4e2d\u6587\uff09",\n'
-    '  "ingredients": [\n'
-    '    {"name": "\u9e21\u80f8\u8089", "weight_g": 150},\n'
-    '    {"name": "\u98df\u7528\u6cb9", "weight_g": 20}\n'
-    "  ],\n"
-    '  "cooking_method": "\u70f9\u996a\u65b9\u5f0f\uff08\u82f1\u6587\uff0c\u5982 deep fried / steamed / braised / stir-fried\uff09",\n'
-    '  "health_risk_tags": ["high oil","high sugar","high salt","high calorie","refined carb","processed meat"] \u4e2d\u9009\u62e9\uff0c\u82e5\u5065\u5eb7\u5219\u4e3a [],\n'
-    '  "model_calories": \u6574\u4efd\u4f30\u7b97\u70ed\u91cf\uff08\u6574\u6570\uff0c\u5355\u4f4d kcal\uff0c\u4f9b\u53c2\u8003\uff09,\n'
-    '  "visual_description": "English visual description for text-to-image generation, including dish, plating, tableware, colors, lighting"\n'
-    "}\n"
-    "\u8981\u6c42\uff1a\n"
-    "1. ingredients \u9010\u9879\u5217\u51fa\u4e3b\u8981\u98df\u6750\u53ca**\u4f30\u7b97\u514b\u91cd** weight_g\uff08\u6574\u6570\uff0c\u719f\u91cd\uff09\uff0c\u98df\u7528\u6cb9/\u9171\u6599\u4e5f\u8981\u5355\u5217\uff1b\n"
-    "2. \u514b\u91cd\u4ee3\u8868\u8be5\u98df\u6750\u5728\u6574\u4efd\u83dc\u54c1\u4e2d\u7684\u7528\u91cf\uff1b\n"
-    "3. \u53ea\u8f93\u51fa JSON\uff0c\u4e0d\u8981\u4f7f\u7528 markdown \u4ee3\u7801\u5757\u3002"
+    """请输出以下 JSON 格式：
+{
+  "dish_name": "整体描述（中文）。如果图中有多道菜或一份套餐，写组合描述（如 米饭+红烧肉+炒时蔬 套餐），不要只写单个菜名",
+  "ingredients": [
+    {"name": "鸡胸肉", "weight_g": 150},
+    {"name": "食用油", "weight_g": 20}
+  ],
+  "cooking_method": "整体烹饪方式（英文，如 deep fried / steamed / braised / stir-fried）",
+  "health_risk_tags": ["high oil","high sugar","high salt","high calorie","refined carb","processed meat"] 中选，健康则为 [],
+  "model_calories": 整份/整餐估算热量（整数，单位 kcal，供参考）,
+  "visual_description": "English visual description for text-to-image generation, including dish, plating, tableware, colors, lighting"
+}
+要求：
+1. 把图中每一种食物都列出来，不要因为像某道菜就只写那一道菜名；一餐有多个菜时，ingredients 要覆盖所有菜的食材。
+2. 每个食材的 weight_g 是它在整份/整餐中的用量（整数，熟重），食用油/酱料也要单列。
+3. 克重参照：一碗/一拳头米饭约150g，一个鸡蛋约50g，一汤匙食用油约10g，一片吐司约30g。
+4. model_calories 要与你列出的食材和克重大致一致，不要与 ingredients 明显矛盾。
+5. 只输出 JSON，不要使用 markdown 代码块。"""
 )
-
 IS_FOOD_PROMPT = (
     "\u4f60\u662f\u4e00\u4e2a\u98df\u7269\u56fe\u7247\u7b5b\u9009\u52a9\u624b\u3002\u5224\u65ad\u56fe\u7247\u7684\u4e3b\u4f53\u662f\u5426\u4e3a\u98df\u7269\u3001\u83dc\u80b4\u3001\u98df\u6750\u6216\u996e\u54c1\u3002"
     '\u53ea\u8f93\u51fa JSON {"is_food": true} \u6216 {"is_food": false}\uff0c\u4e0d\u8981\u8f93\u51fa\u4efb\u4f55\u5176\u4ed6\u6587\u5b57\u3002'

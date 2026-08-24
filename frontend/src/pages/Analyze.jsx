@@ -360,7 +360,7 @@ export default function Analyze() {
                   <div className="text-xs text-ink-500 mt-1">营养库核算 (kcal) · 约 {Math.round(primaryKcal)} kJ</div>
                   {edited && <div className="mt-1 text-[11px] font-semibold text-orange-500">✏️ 已按修正克重</div>}
                 </div>
-                <div><div className="text-2xl font-black text-ink-800">{primary.model_calories ?? '-'}</div><div className="text-xs text-ink-500 mt-1">模型估算 (kcal)</div></div>
+                <div><div className="text-2xl font-black text-ink-800">{primary.model_calories ?? '-'}</div><div className="text-xs text-ink-500 mt-1">AI 估算 (kcal)</div></div>
                 <div><div className="text-2xl font-black text-ink-800">{result.models.length}</div><div className="text-xs text-ink-500 mt-1">使用模型</div></div>
               </div>
               {result.matched_products?.length > 0 && (
@@ -374,17 +374,39 @@ export default function Analyze() {
                   ))}
                 </div>
               )}
+              {typeof result.recommended_calories === 'number' && (
+                <div className="mt-3 px-4 py-3 rounded-xl bg-brand-50 border border-brand-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-brand-700">推荐热量</span>
+                    <span className="text-xl font-black text-brand-700">{result.recommended_calories} kcal</span>
+                  </div>
+                  <div className="mt-1 text-[11px] text-ink-500">
+                    {result.calorie_confidence === 'low'
+                      ? `营养库核算 ${result.library_calories} · AI 估算 ${result.model_calories}，差距较大取中值`
+                      : `营养库核算 ${result.library_calories} · AI 估算 ${result.model_calories ?? '-'}`}
+                  </div>
+                </div>
+              )}
               <div className="mt-3 px-3 py-2 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-700">
                 💡 小知识：1 大卡(kcal) ≈ 4.18 千焦(kJ)。食品包装上的 kJ 除以 4 左右才是大卡，别搞混啦。
               </div>
+              <div className="mt-3 px-3 py-2 rounded-xl bg-amber-50 border border-amber-100 text-xs text-amber-700">
+                说明：营养库核算 = 按 AI 识别出的食材与克重逐项计算；AI 估算 = 大模型直接估的整值，通常偏低，仅供参考。
+              </div>
               <div className="mt-3">
-                <div className="text-xs font-semibold text-ink-500 mb-1.5">各模型热量对比</div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-ink-500">各模型·营养库核算 (kcal)</span>
+                  <span className="text-[10px] text-ink-400">＝AI识别食材逐项计算</span>
+                </div>
                 <div className="space-y-2">
                   {modelList.map((m) => (
                     <div key={m}>
                       <div className="flex justify-between text-xs text-ink-600 mb-0.5">
                         <span>{MODELS.find(x => x.id === m)?.label || m}</span>
-                        <span className="font-semibold">{Math.round(effCalories(m))} kcal</span>
+                        <span>
+                          <span className="font-semibold">{Math.round(effCalories(m))} kcal</span>
+                          <span className="ml-1.5 text-[10px] text-ink-400">AI估 {result.results?.[m]?.model_calories ?? '-'}</span>
+                        </span>
                       </div>
                       <div className="h-2 rounded-full bg-ink-100 overflow-hidden">
                         <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-400 transition-all"
