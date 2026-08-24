@@ -102,7 +102,11 @@ def analyze(
         breakdown_by_model = {}
         unlisted_by_model = {}
         for m, r in food_results.items():
-            cc, bd, ul = compute_calories(r["analysis"])
+            analysis = r["analysis"] if isinstance(r["analysis"], dict) else {}
+            try:
+                cc, bd, ul = compute_calories(analysis)
+            except Exception:
+                cc, bd, ul = (0, [], [])
             # 每行补充每100g宏量（供前端编辑克重后重算营养结构）
             for item in bd:
                 p100, c100, f100 = lookup_macros(item["name"]) or (0.0, 0.0, 0.0)
@@ -131,7 +135,10 @@ def analyze(
             }
 
         # Module B：改造方案
-        plan = generate_plan(primary, goal, model=text_model, profile=profile_info, computed_calories=primary_cc)
+        try:
+            plan = generate_plan(primary, goal, model=text_model, profile=profile_info, computed_calories=primary_cc)
+        except Exception:
+            plan = {}
 
         # 食材替换建议
         try:

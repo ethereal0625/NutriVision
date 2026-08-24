@@ -82,6 +82,24 @@ def _optimized_b64(image_path: str, max_side: int = 1280, quality: int = 85) -> 
         return _img_b64(image_path)
 
 
+def _as_object(value: Any) -> dict:
+    """Coerce a model result to a dict. Vision models sometimes return a JSON array."""
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, list):
+        for item in value:
+            if isinstance(item, dict):
+                return item
+        if value and isinstance(value[0], str):
+            try:
+                parsed = parse_json(value[0])
+                if isinstance(parsed, dict):
+                    return parsed
+            except Exception:
+                pass
+    return {}
+
+
 # -- DashScope (Qwen-VL) via SDK -------------------------------------------
 
 def _dashscope_call(messages: list, model: str) -> dict:
@@ -109,7 +127,7 @@ def _dashscope_is_food(image_path: str, model: str) -> bool:
             ],
         }
     ]
-    return bool(_dashscope_call(messages, model).get("is_food"))
+    return bool(_as_object(_dashscope_call(messages, model)).get("is_food"))
 
 
 def _dashscope_analyze(image_path: str, model: str) -> dict:
@@ -123,7 +141,7 @@ def _dashscope_analyze(image_path: str, model: str) -> dict:
             ],
         },
     ]
-    return _dashscope_call(messages, model)
+    return _as_object(_dashscope_call(messages, model))
 
 
 # -- Generic HTTP API caller (Zhipu / Doubao) ------------------------------
@@ -217,11 +235,11 @@ def is_food(image_path: str, model: str = "qwen-vl-plus") -> bool:
         return _dashscope_is_food(image_path, model)
     elif provider == "zhipu":
         msgs = _zhipu_messages(image_path, IS_FOOD_PROMPT)
-        return bool(_http_vision_call("zhipu", msgs, model).get("is_food"))
+        return bool(_as_object(_http_vision_call("zhipu", msgs, model)).get("is_food"))
     elif provider == "doubao":
         actual_model = model_info.get("endpoint_id", model)
         msgs = _doubao_messages(image_path, IS_FOOD_PROMPT)
-        return bool(_http_vision_call("doubao", msgs, actual_model).get("is_food"))
+        return bool(_as_object(_http_vision_call("doubao", msgs, actual_model)).get("is_food"))
     else:
         raise ValueError(f"Unsupported provider: {provider}")
 
@@ -235,11 +253,11 @@ def analyze_image(image_path: str, model: str = "qwen-vl-plus") -> dict:
         return _dashscope_analyze(image_path, model)
     elif provider == "zhipu":
         msgs = _zhipu_messages(image_path, USER_PROMPT, system=True)
-        return _http_vision_call("zhipu", msgs, model)
+        return _as_object(_http_vision_call("zhipu", msgs, model))
     elif provider == "doubao":
         actual_model = model_info.get("endpoint_id", model)
         msgs = _doubao_messages(image_path, USER_PROMPT, system=True)
-        return _http_vision_call("doubao", msgs, actual_model)
+        return _as_object(_http_vision_call("doubao", msgs, actual_model))
     else:
         raise ValueError(f"Unsupported provider: {provider}")
 
